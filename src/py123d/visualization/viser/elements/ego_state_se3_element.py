@@ -51,6 +51,13 @@ class EgoElement(ViewerElement):
     def name(self) -> str:
         return "Ego State (SE3)"
 
+    def _ego_rgb(self) -> tuple:
+        """Per-agent color if set on the context, otherwise the default ego color."""
+        if self._context.agent_color is not None:
+            return self._context.agent_color
+        r, g, b, _ = BOX_DETECTION_CONFIG[DefaultBoxDetectionLabel.EGO].fill_color.rgba
+        return (r, g, b)
+
     def create_gui(self, server: viser.ViserServer) -> None:
         self._server = server
         self._gui_visible = server.gui.add_checkbox("Visible", self._config.visible)
@@ -88,13 +95,13 @@ class EgoElement(ViewerElement):
                 opacity = self._gui_opacity.value
                 alpha = int(np.clip(opacity * 255, 0, 255))
                 box_vertices, box_faces = corners_array_to_3d_mesh(box_corners_array)
-                r, g, b, _ = BOX_DETECTION_CONFIG[DefaultBoxDetectionLabel.EGO].fill_color.rgba
+                r, g, b = self._ego_rgb()
                 vertex_colors = np.tile(np.array([r, g, b, alpha]), (len(Corners3DIndex), 1))
                 mesh = trimesh.Trimesh(vertices=box_vertices, faces=box_faces)
                 mesh.visual.vertex_colors = vertex_colors  # type: ignore
                 mesh.visual.material = trimesh.visual.material.PBRMaterial(alphaMode="BLEND")  # type: ignore
                 self._handles["mesh"] = self._server.scene.add_mesh_trimesh(
-                    "ego_mesh",
+                    self._context.node("ego_mesh"),
                     mesh=mesh,
                     visible=True,
                     cast_shadow=False,
@@ -104,11 +111,11 @@ class EgoElement(ViewerElement):
             if display_type in {"lines", "mesh+lines"}:
                 box_outlines = corners_array_to_edge_lines(box_corners_array).reshape(-1, 2, 3)
                 colors = np.broadcast_to(
-                    np.array(BOX_DETECTION_CONFIG[DefaultBoxDetectionLabel.EGO].fill_color.rgb),
+                    np.array(self._ego_rgb()),
                     (len(box_outlines), 2, 3),
                 )
                 self._handles["lines"] = self._server.scene.add_line_segments(
-                    "ego_lines",
+                    self._context.node("ego_lines"),
                     points=box_outlines,
                     colors=colors,
                     line_width=self._config.line_width,
@@ -178,7 +185,7 @@ class EgoElement(ViewerElement):
         wxyz = imu_pose[PoseSE3Index.QUATERNION]
 
         self._imu_frame_handle = self._server.scene.add_frame(
-            "ego_imu_frame",
+            self._context.node("ego_imu_frame"),
             axes_length=0.5,
             axes_radius=0.01,
             position=position,

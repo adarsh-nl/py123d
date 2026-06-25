@@ -129,7 +129,7 @@ class CameraFrustumElement(ViewerElement):
                 self._frustum_handles[camera_type].image = camera.image
             else:
                 self._frustum_handles[camera_type] = self._server.scene.add_camera_frustum(
-                    f"camera_frustums/{camera_type.serialize()}",
+                    self._context.node(f"camera_frustums/{camera_type.serialize()}"),
                     fov=fov,  # type: ignore
                     aspect=aspect,
                     scale=self._config.frustum_scale,
@@ -153,7 +153,7 @@ class CameraFrustumElement(ViewerElement):
                     #     self._context.scene, scene_center_pose, camera_type, iteration
                     # )
                     self._frame_handles[camera_type] = self._server.scene.add_frame(
-                        f"camera_frames/{camera_type.serialize()}",
+                        self._context.node(f"camera_frames/{camera_type.serialize()}"),
                         axes_length=0.5,
                         axes_radius=0.01,
                         position=camera_position,

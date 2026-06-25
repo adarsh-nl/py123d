@@ -126,7 +126,13 @@ class LidarElement(ViewerElement):
             xyz = np.array(lidar.xyz, dtype=np.float64)
 
             points = rel_to_abs_points_3d_array(ego_pose, xyz)
-            colors = get_lidar_pc_color(lidar, color_feature=self._config.point_color, dark_mode=self._dark_mode)
+            if self._context.agent_color is not None and self._config.point_color == "none":
+                # In a multi-agent overlay, tint each agent's own points with its color so
+                # it is clear which sensor produced which points (per-agent coloring still
+                # defers to an explicit feature coloring like "height"/"intensity").
+                colors = np.tile(np.array(self._context.agent_color, dtype=np.uint8), (len(points), 1))
+            else:
+                colors = get_lidar_pc_color(lidar, color_feature=self._config.point_color, dark_mode=self._dark_mode)
         else:
             points = np.zeros((0, 3), dtype=np.float32)
             colors = np.zeros((0, 3), dtype=np.uint8)
@@ -139,7 +145,7 @@ class LidarElement(ViewerElement):
             self._handles[active_id].visible = True  # type: ignore
         else:
             self._handles[active_id] = self._server.scene.add_point_cloud(  # type: ignore
-                "lidar_points",
+                self._context.node("lidar_points"),
                 points=points,
                 colors=colors,
                 point_size=self._config.point_size,
@@ -226,7 +232,7 @@ class LidarElement(ViewerElement):
             wxyz = lidar_scene_pose[PoseSE3Index.QUATERNION]
 
             frame_handle = self._server.scene.add_frame(
-                f"lidar_sensor_frames/{lidar_id.name}",
+                self._context.node(f"lidar_sensor_frames/{lidar_id.name}"),
                 axes_length=0.5,
                 axes_radius=0.01,
                 position=position,

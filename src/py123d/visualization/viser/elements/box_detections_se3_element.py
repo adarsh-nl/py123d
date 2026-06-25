@@ -85,7 +85,7 @@ class BoxDetectionsSE3Element(ViewerElement):
                     self._context.scene, iteration, self._context.initial_ego_state, opacity=opacity
                 )
                 self._handles["mesh"] = self._server.scene.add_mesh_trimesh(
-                    "box_detections_mesh",
+                    self._context.node("box_detections_mesh"),
                     mesh=mesh,
                     visible=True,
                     cast_shadow=False,
@@ -96,7 +96,7 @@ class BoxDetectionsSE3Element(ViewerElement):
                     self._context.scene, iteration, self._context.initial_ego_state
                 )
                 self._handles["lines"] = self._server.scene.add_line_segments(
-                    "box_detections_lines",
+                    self._context.node("box_detections_lines"),
                     points=lines,
                     colors=colors,
                     line_width=self._config.line_width,
@@ -168,7 +168,7 @@ class BoxDetectionsSE3Element(ViewerElement):
             wxyz = box_array[BoundingBoxSE3Index.QW : BoundingBoxSE3Index.QZ + 1]
 
             frame_handle = self._server.scene.add_frame(
-                f"box_detection_frames/{i}",
+                self._context.node(f"box_detection_frames/{i}"),
                 axes_length=0.5,
                 axes_radius=0.01,
                 position=position,

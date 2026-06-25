@@ -148,7 +148,7 @@ class MapElement(ViewerElement):
             is_visible = self._gui_visible.value and (layer_cb is None or layer_cb.value)
             color = MAP_SURFACE_CONFIG[map_layer].fill_color.rgb
             self._handles[f"surface/{map_layer.serialize()}"] = self._server.scene.add_mesh_simple(
-                f"/map/{map_layer.serialize()}",
+                self._context.node(f"/map/{map_layer.serialize()}"),
                 vertices=mesh.vertices.astype(np.float32),
                 faces=mesh.faces.astype(np.uint32),
                 color=color,
@@ -166,7 +166,7 @@ class MapElement(ViewerElement):
         if road_edge_segments is not None and len(road_edge_segments) > 0:
             colors = np.full(road_edge_segments.shape, np.array(road_edge_color) / 255.0, dtype=np.float32)
             self._handles["lines/road_edges"] = self._server.scene.add_line_segments(
-                "/map/road_edges",
+                self._context.node("/map/road_edges"),
                 points=road_edge_segments,
                 colors=colors,
                 line_width=2.0,
@@ -179,7 +179,7 @@ class MapElement(ViewerElement):
         if centerline_segments is not None and len(centerline_segments) > 0:
             colors = np.full(centerline_segments.shape, np.array(centerline_color) / 255.0, dtype=np.float32)
             self._handles["lines/centerlines"] = self._server.scene.add_line_segments(
-                "/map/centerlines",
+                self._context.node("/map/centerlines"),
                 points=centerline_segments,
                 colors=colors,
                 line_width=1.5,
