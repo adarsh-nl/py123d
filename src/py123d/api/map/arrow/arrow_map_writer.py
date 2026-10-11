@@ -1,3 +1,4 @@
+import shutil
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
@@ -166,7 +167,7 @@ class ArrowMapWriter(BaseMapWriter):
         self._write_line_layer(MapLayer.ROAD_LINE, road_line)
         self._map_data[MapLayer.ROAD_LINE]["road_line_type"].append(int(road_line.road_line_type))
 
-    def close(self) -> None:
+    def close(self, incomplete: bool = False) -> None:
         """Inherited, see superclass."""
 
         if self._map_file is not None and self._map_data is not None:
@@ -345,7 +346,14 @@ class ArrowMapWriter(BaseMapWriter):
             table = table.replace_schema_metadata(
                 {b"metadata": msgpack.packb(self._map_metadata.to_dict(), use_bin_type=True)}
             )
-            write_arrow_table(table, self._map_file)
+            # The map is written to the incomplete directory, a complete map is then moved to the map file.
+            metadata = self._map_metadata
+            name = f"{metadata.split or metadata.dataset}/{metadata.log_name or metadata.location}"
+            incomplete_map_file = self._maps_root / ".incomplete" / f"{name}.arrow"
+            incomplete_map_file.parent.mkdir(parents=True, exist_ok=True)
+            write_arrow_table(table, incomplete_map_file)
+            if not incomplete:
+                shutil.move(incomplete_map_file, self._map_file)
 
         del self._map_file, self._map_data, self._map_metadata
         self._map_file = None
