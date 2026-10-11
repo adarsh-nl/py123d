@@ -19,6 +19,7 @@ Each dataset entry includes installation instructions, available data types, kno
    nurec
    nureasoning
    nuscenes
+   once
    pandaset
    physical-ai-av
    truckdrive
