@@ -6,3 +6,6 @@ defaults:
 # The mini split has 2,997 clips (6.2 TB): narrow it down with `num_logs`, `log_names` or `parts`.
 parser:
   splits: ["nureasoning-mini_train"]
+
+  downloader:
+    output_dir: ${dataset_paths.py123d_download_root}/nureasoning-mini

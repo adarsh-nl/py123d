@@ -246,8 +246,9 @@ section above):
   at read time. To change this behavior, adapt the ``nureasoning.yaml`` converter
   configuration.
 
-**Streaming mode** — download the selected clips from Hugging Face into a temp directory
-at parser construction time, convert from it, and delete the temp directory afterwards.
+**Streaming mode** — download the selected clips from Hugging Face into
+``$PY123D_DATA_ROOT/.download/nureasoning`` at parser construction time, convert from it,
+and delete that directory afterwards.
 
 .. code-block:: bash
 
@@ -261,14 +262,14 @@ at parser construction time, convert from it, and delete the temp directory afte
   py123d-conversion dataset=nureasoning-stream \
     'dataset.parser.downloader.log_names=[<log>_<token>,<log>_<token>]'
 
-All selected clips are downloaded before the conversion starts, so the temp directory
-(``$TMPDIR``) has to hold them. Narrow the selection down with ``num_logs``, ``log_names``
-or ``parts``: the full release does not fit. ``dataset=nureasoning-mini-stream`` is the
-same for the mini split.
+All selected clips are downloaded before the conversion starts, so that directory has to
+hold them (set ``PY123D_DOWNLOAD_ROOT`` to download elsewhere). Narrow the selection down
+with ``num_logs``, ``log_names`` or ``parts``: the full release does not fit.
+``dataset=nureasoning-mini-stream`` is the same for the mini split.
 
 .. note::
   Streaming mode forces ``camera_store_option: "jpeg_binary"`` and
-  ``lidar_store_option: "binary"`` (with the ``laz`` codec) — the temp directory is
+  ``lidar_store_option: "binary"`` (with the ``laz`` codec) — the download directory is
   deleted immediately after conversion, so any ``"path"`` references would point at
   vanished sources.
 

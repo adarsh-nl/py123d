@@ -5,6 +5,8 @@ dataset_paths:
   py123d_logs_root: ${dataset_paths.py123d_data_root}/logs
   py123d_maps_root: ${dataset_paths.py123d_data_root}/maps
   py123d_sensors_root: ${dataset_paths.py123d_data_root}/sensors
+  # Streaming conversions download into <py123d_download_root>/<dataset> and delete it afterwards.
+  py123d_download_root: ${oc.env:PY123D_DOWNLOAD_ROOT,${dataset_paths.py123d_data_root}/.download}
 
   # nuPlan defaults
   nuplan_data_root: ${oc.env:NUPLAN_DATA_ROOT,null}

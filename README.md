@@ -44,7 +44,7 @@ Per-dataset extras (e.g. `py123d[av2]`, `py123d[nuscenes]`, `py123d[waymo]`) ins
 
 Demo using the Argoverse 2 Sensor dataset, which is publicly readable from S3 and requires no cloud authentication.
 
-The `av2-sensor-stream` config downloads the requested logs/maps into a managed temp directory, converts them into our self-contained Arrow format, and cleans up the source files afterwards. `PY123D_DATA_ROOT` controls where the converted logs/maps are written. The script below installs the Av2 extra, converts the first 3 validation logs (~250 MB each), and launches the Viser viewer:
+The `av2-sensor-stream` config downloads the requested logs/maps into `$PY123D_DATA_ROOT/.download/av2-sensor`, converts them into our self-contained Arrow format, and deletes the source files afterwards. `PY123D_DATA_ROOT` controls where the converted logs/maps are written. The script below installs the Av2 extra, converts the first 3 validation logs (~250 MB each), and launches the Viser viewer:
 
 ```bash
 # 1. Install
@@ -191,6 +191,7 @@ Open `http://localhost:8080` to browse the converted scenes interactively.
 
 - Updated **nuReasoning** to the full release on Hugging Face ([`nureasoning/nuReasoning`](https://huggingface.co/datasets/nureasoning/nuReasoning), gated): new `nureasoning_train`, `nureasoning_val` and `nureasoning_test` splits with `dataset=nureasoning` and `dataset=nureasoning-stream`, `.tar` clip archives, and the test split with its challenge questions as a custom modality. Breaking: the downloader selects py123d split names instead of repository folders, its `keep_zip` option is now `keep_archive`, and a clip's repeated key frame is stored once.
 - Added [**KITScenes Multimodal**](https://arxiv.org/abs/2606.02956) dataset support (experimental): ego poses, 9 cameras, 7 lidars, 3 radars and per-scene Lanelet2 HD maps, plus a Hugging Face downloader and streaming conversion. Added the `PCAM_F1`, `LIDAR_FRONT_LEFT` and `LIDAR_FRONT_RIGHT` sensor IDs. Note: the ego vehicle dimensions assume a long-wheelbase BMW 7 Series G12; only the wheelbase is confirmed by the authors' publications.
+- Downloads no longer use the system temp directory. Streaming conversions download into `$PY123D_DATA_ROOT/.download/<dataset>` (or `$PY123D_DOWNLOAD_ROOT/<dataset>`) and delete that folder when the conversion ends, unless `keep_downloads=true`; `py123d-download` keeps archives inside the output directory until they are extracted.
 
 </details>
 

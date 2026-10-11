@@ -35,8 +35,8 @@ both entry points:
    ``data/`` root (== ``nureasoning_data_root``).
 
 2. The :class:`~py123d.parser.nureasoning.nureasoning_parser.NureasoningParser`
-   streaming path — the parser points ``output_dir`` at a managed temp directory, calls
-   :meth:`download` for the selected clips, converts them, and deletes the temp directory.
+   streaming path — the parser calls :meth:`download` for the selected clips and converts
+   them; the conversion deletes ``output_dir`` when it ends.
 
 Selection is incremental: pick ``splits`` (``nureasoning_train``, ...), ``parts``
 (``part_1``, ...), explicit ``log_names``, or the first/random ``num_logs``. The repo tree
@@ -213,7 +213,7 @@ class NureasoningDownloader(BaseDownloader):
     * :meth:`download` — bulk-fetch every selected clip, extracting each into
       ``output_dir/<split>/[<part>/]<clip>/``. Used by ``py123d-download dataset=nureasoning``
       and by :class:`~py123d.parser.nureasoning.nureasoning_parser.NureasoningParser` in
-      streaming mode, which points ``output_dir`` at a managed temp directory.
+      streaming mode.
     * :meth:`download_single_clip` — fetch one clip into a caller-provided directory.
     """
 

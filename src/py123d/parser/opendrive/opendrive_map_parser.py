@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Dict, Final, Iterator, List, Optional, Tuple
+from typing import IO, Dict, Final, Iterator, List, Optional, Tuple, Union
 
 import numpy as np
 import shapely
@@ -98,7 +98,7 @@ class OpenDriveMapParser(BaseMapParser):
 
 
 def iter_xodr_map_objects(
-    xodr_file: Path,
+    xodr_file: Union[Path, IO[bytes]],
     interpolation_step_size: float = 1.0,
     connection_distance_threshold: float = 0.1,
     internal_only: bool = True,
@@ -109,7 +109,7 @@ def iter_xodr_map_objects(
 ) -> Iterator[BaseMapObject]:
     """Yields all map objects extracted from an OpenDRIVE (.xodr) file.
 
-    :param xodr_file: Path to the OpenDRIVE (.xodr) file.
+    :param xodr_file: Path to the OpenDRIVE (.xodr) file, or the file opened in binary mode.
     :param interpolation_step_size: Step size for interpolating polylines, defaults to 1.0
     :param connection_distance_threshold: Distance threshold for connecting road elements, defaults to 0.1
     :param internal_only: If True, only yield internal road lines (center + between lanes), defaults to True

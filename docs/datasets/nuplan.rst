@@ -313,8 +313,8 @@ Conversion
   To change this behavior, you need to adapt the ``nuplan.yaml`` or ``nuplan-mini.yaml`` converter configuration.
 
 **Streaming mode** — materialize the configured archive subset from the public nuPlan
-AWS bucket into a session-scoped temp directory at parser construction time, convert
-from it, and delete the temp directory on parser destruction. The ``maps/`` and
+AWS bucket into ``$PY123D_DATA_ROOT/.download/nuplan`` at parser construction time, convert
+from it, and delete that directory when the conversion ends. The ``maps/`` and
 ``sensor_blobs/`` subdirectories are auto-detected (the three ``nuplan_*_root``
 paths do not need to be set). No credentials required.
 
@@ -339,8 +339,8 @@ paths do not need to be set). No credentials required.
 
 .. note::
   Streaming mode forces ``camera_store_option: "jpeg_binary"`` and
-  ``lidar_store_option: "binary"`` — the temp directory is deleted immediately after
-  the parser is garbage-collected, so any ``"path"`` references would point at
+  ``lidar_store_option: "binary"`` — the download directory is deleted when the
+  conversion ends, so any ``"path"`` references would point at
   vanished sources.
 
 

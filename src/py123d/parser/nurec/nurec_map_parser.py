@@ -5,7 +5,6 @@ import json
 import logging
 import math
 import re
-import tempfile
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -683,19 +682,13 @@ class NuRecMapParser(BaseMapParser):
         xodr_bytes = archive.read(self._xodr_member)
         alignment = self._load_alignment(archive) if self._alignment_enabled else None
 
-        with tempfile.NamedTemporaryFile(suffix=".xodr", delete=False) as tmp_file:
-            tmp_file.write(xodr_bytes)
-            tmp_path = Path(tmp_file.name)
-        try:
-            for map_object in iter_xodr_map_objects(
-                xodr_file=tmp_path,
-                interpolation_step_size=self._xodr_interpolation_step_size,
-                connection_distance_threshold=self._xodr_connection_distance_threshold,
-                internal_only=self._xodr_internal_only,
-            ):
-                yield _transform_map_object(map_object, alignment) if alignment is not None else map_object
-        finally:
-            tmp_path.unlink(missing_ok=True)
+        for map_object in iter_xodr_map_objects(
+            xodr_file=io.BytesIO(xodr_bytes),
+            interpolation_step_size=self._xodr_interpolation_step_size,
+            connection_distance_threshold=self._xodr_connection_distance_threshold,
+            internal_only=self._xodr_internal_only,
+        ):
+            yield _transform_map_object(map_object, alignment) if alignment is not None else map_object
 
     def _load_alignment(self, archive: ZipFile) -> NuRecMapAlignment:
         geo_origin = _read_xodr_geo_origin(archive, self._xodr_member)

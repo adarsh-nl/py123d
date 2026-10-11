@@ -21,3 +21,4 @@ terminate_on_exception: True
 force_map_conversion: True
 force_log_conversion: True
 async_conversion: False
+keep_downloads: False  # streaming conversions (dataset=<name>-stream) delete the raw files they downloaded

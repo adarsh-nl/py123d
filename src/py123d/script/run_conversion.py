@@ -1,5 +1,8 @@
+import contextlib
 import gc
 import logging
+import os
+import shutil
 import traceback
 from functools import partial
 from typing import List
@@ -52,6 +55,13 @@ def main(cfg: DictConfig) -> None:
         dataset_parser.get_log_parsers(),
         name=f"Logs {parser_class_name}",
     )
+
+    # Streaming datasets delete the raw files they downloaded, unless ``keep_downloads`` is set.
+    if not cfg.dataset.get("keep_downloads", True):
+        shutil.rmtree(cfg.dataset.parser.downloader.output_dir, ignore_errors=True)
+        # The download root goes too, once no other conversion has a folder in it (rmdir fails otherwise).
+        with contextlib.suppress(OSError):
+            os.rmdir(cfg.dataset_paths.py123d_download_root)
 
 
 def _convert_maps(args: List[BaseMapParser], cfg: DictConfig) -> List:
