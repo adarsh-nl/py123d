@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Iterator, Optional
 
+import pyarrow as pa
 import pytest
 from omegaconf import DictConfig, OmegaConf
 
@@ -93,30 +94,34 @@ def test_failed_log_stays_incomplete(tmp_path: Path, convert_fn):
     assert (tmp_path / "logs" / _SPLIT / "log_001" / "sync.arrow").exists()
     assert (tmp_path / "logs" / _SPLIT / "log_003" / "sync.arrow").exists()
     assert not (tmp_path / "logs" / _SPLIT / "log_002").exists()
-    assert (tmp_path / "logs" / ".incomplete" / _SPLIT / "log_002" / "ego_state_se3.arrow").exists()
+    # The failed log is closed with the frame written before the error, e.g. for debugging.
+    sync_file = tmp_path / "logs" / ".incomplete" / _SPLIT / "log_002" / "sync.arrow"
+    assert pa.ipc.open_file(str(sync_file)).read_all().num_rows == 1
 
 
-def test_failed_map_is_not_written(tmp_path: Path):
+def test_failed_map_stays_incomplete(tmp_path: Path):
     cfg = _make_cfg(tmp_path)
     map_parsers = [_FakeMapParser("boston"), _FakeMapParser("pittsburgh", fail=True)]
 
     assert _convert_maps(map_parsers, cfg) == ["test-dataset/pittsburgh"]
     assert [path.name for path in (tmp_path / "maps" / "test-dataset").iterdir()] == ["test-dataset_boston.arrow"]
+    assert (tmp_path / "maps" / ".incomplete" / "test-dataset" / "pittsburgh.arrow").exists()
 
 
 @pytest.mark.parametrize("keep_incomplete", [True, False])
 def test_cleanup_incomplete(tmp_path: Path, keep_incomplete: bool):
     cfg = _make_cfg(tmp_path, keep_incomplete)
-    _convert_maps([_FakeMapParser("boston")], cfg)
+    failed_maps = _convert_maps([_FakeMapParser("boston"), _FakeMapParser("pittsburgh", fail=True)], cfg)
     failed_logs = _convert_logs([_FakeLogParser("log_001"), _FakeLogParser("log_002", fail_at_frame=1)], cfg)
     # Another conversion may be running in the same data root, its logs must not be deleted.
     other_log_dir = tmp_path / "logs" / ".incomplete" / "other-dataset_train" / "log_running"
     other_log_dir.mkdir(parents=True)
 
-    _cleanup_incomplete(cfg, failed_logs)
+    _cleanup_incomplete(cfg, failed_maps, failed_logs)
 
     assert (tmp_path / "logs" / ".incomplete" / _SPLIT / "log_002").exists() is keep_incomplete
     assert (tmp_path / "logs" / ".incomplete" / _SPLIT).exists() is keep_incomplete
     assert other_log_dir.exists()
-    assert not (tmp_path / "maps" / ".incomplete").exists()
+    assert (tmp_path / "maps" / ".incomplete" / "test-dataset" / "pittsburgh.arrow").exists() is keep_incomplete
+    assert (tmp_path / "maps" / ".incomplete").exists() is keep_incomplete
     assert (tmp_path / "logs" / _SPLIT / "log_001" / "sync.arrow").exists()

@@ -190,7 +190,7 @@ Open `http://localhost:8080` to browse the converted scenes interactively.
 <summary><b>v0.8.0</b> (unreleased)</summary>
 
 - Added [**KITScenes Multimodal**](https://arxiv.org/abs/2606.02956) dataset support (experimental): ego poses, 9 cameras, 7 lidars, 3 radars and per-scene Lanelet2 HD maps, plus a Hugging Face downloader and streaming conversion. Added the `PCAM_F1`, `LIDAR_FRONT_LEFT` and `LIDAR_FRONT_RIGHT` sensor IDs. Note: the ego vehicle dimensions assume a long-wheelbase BMW 7 Series G12; only the wheelbase is confirmed by the authors' publications.
-- Conversions no longer leave half-written logs behind. Logs are written to `$PY123D_DATA_ROOT/logs/.incomplete` (maps to `maps/.incomplete`) and moved into place once complete; `py123d-conversion` reports at the end whether everything completed and lists the maps and logs that did not. Logs that did not complete stay in `logs/.incomplete`, unless `keep_incomplete=false`.
+- Conversions no longer leave half-written logs behind. Logs are written to `$PY123D_DATA_ROOT/logs/.incomplete` (maps to `maps/.incomplete`) and moved into place once complete; `py123d-conversion` reports at the end whether everything completed and lists the maps and logs that did not. Maps and logs that did not complete are closed and stay in `.incomplete` for inspection, unless `keep_incomplete=false`.
 
 </details>
 

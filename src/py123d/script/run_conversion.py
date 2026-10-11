@@ -65,7 +65,7 @@ def main(cfg: DictConfig) -> None:
         )
     else:
         logger.info(f"Conversion completed successfully for all {len(map_parsers)} maps and {len(log_parsers)} logs.")
-    _cleanup_incomplete(cfg, failed_logs)
+    _cleanup_incomplete(cfg, failed_maps, failed_logs)
 
 
 def _convert_maps(args: List[BaseMapParser], cfg: DictConfig) -> List[str]:
@@ -76,7 +76,7 @@ def _convert_maps(args: List[BaseMapParser], cfg: DictConfig) -> List[str]:
         map_name = "unknown"
         try:
             map_metadata = map_parser.get_map_metadata()
-            map_name = f"{map_metadata.dataset}/{map_metadata.log_name or map_metadata.location}"
+            map_name = f"{map_metadata.split or map_metadata.dataset}/{map_metadata.log_name or map_metadata.location}"
             map_needs_writing = map_writer.reset(map_metadata)
             if map_needs_writing:
                 for map_object in map_parser.iter_map_objects():
@@ -85,9 +85,11 @@ def _convert_maps(args: List[BaseMapParser], cfg: DictConfig) -> List[str]:
         except Exception as e:
             logger.error(f"Error converting map {map_name}: {e}")
             logger.error(traceback.format_exc())
-            # A new writer drops the map, close() would write what was parsed so far.
-            map_writer = build_map_writer(cfg.dataset.map_writer)
             failed_maps.append(map_name)
+            try:
+                map_writer.close(incomplete=True)  # stays in the incomplete directory, e.g. for debugging
+            except Exception:
+                map_writer = build_map_writer(cfg.dataset.map_writer)  # a broken map may not close either
             gc.collect()
     return failed_maps
 
@@ -112,9 +114,11 @@ def _convert_logs(args: List[BaseLogParser], cfg: DictConfig) -> List[str]:
         except Exception as e:
             logger.error(f"Error converting log {log_name}: {e}")
             logger.error(traceback.format_exc())
-            # A new writer leaves the log in the incomplete directory, only close() moves it out.
-            log_writer = build_log_writer(cfg.dataset.log_writer)
             failed_logs.append(log_name)
+            try:
+                log_writer.close(incomplete=True)  # stays in the incomplete directory, e.g. for debugging
+            except Exception:
+                log_writer = build_log_writer(cfg.dataset.log_writer)  # a broken log may not close either
             gc.collect()
     return failed_logs
 
@@ -139,24 +143,29 @@ def _convert_logs_async(args: List[BaseLogParser], cfg: DictConfig) -> List[str]
         except Exception as e:
             logger.error(f"Error converting log {log_name}: {e}")
             logger.error(traceback.format_exc())
-            # A new writer leaves the log in the incomplete directory, only close() moves it out.
-            log_writer = build_log_writer(cfg.dataset.log_writer)
             failed_logs.append(log_name)
+            try:
+                log_writer.close(incomplete=True)  # stays in the incomplete directory, e.g. for debugging
+            except Exception:
+                log_writer = build_log_writer(cfg.dataset.log_writer)  # a broken log may not close either
             gc.collect()
     return failed_logs
 
 
-def _cleanup_incomplete(cfg: DictConfig, failed_logs: List[str]) -> None:
-    """Deletes the logs that did not complete, unless ``keep_incomplete`` is set."""
+def _cleanup_incomplete(cfg: DictConfig, failed_maps: List[str], failed_logs: List[str]) -> None:
+    """Deletes the maps and logs that did not complete, unless ``keep_incomplete`` is set."""
     incomplete_logs_root = Path(cfg.dataset_paths.py123d_logs_root) / ".incomplete"
     incomplete_maps_root = Path(cfg.dataset_paths.py123d_maps_root) / ".incomplete"
     if not cfg.keep_incomplete:
+        for failed_map in failed_maps:
+            (incomplete_maps_root / f"{failed_map}.arrow").unlink(missing_ok=True)
         for failed_log in failed_logs:
             shutil.rmtree(incomplete_logs_root / failed_log, ignore_errors=True)
     # The incomplete directories are only removed if empty, another conversion may be writing to them.
-    for directory in [*incomplete_logs_root.glob("*"), incomplete_logs_root, incomplete_maps_root]:
-        with suppress(OSError):
-            directory.rmdir()
+    for incomplete_root in (incomplete_logs_root, incomplete_maps_root):
+        for directory in [*incomplete_root.glob("*"), incomplete_root]:
+            with suppress(OSError):
+                directory.rmdir()
 
 
 if __name__ == "__main__":

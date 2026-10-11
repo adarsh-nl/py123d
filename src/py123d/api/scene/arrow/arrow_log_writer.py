@@ -372,7 +372,7 @@ class ArrowLogWriter(BaseLogWriter):
         )
         self._write_single_modality(modality)
 
-    def close(self) -> None:
+    def close(self, incomplete: bool = False) -> None:
         """Inherited, see superclass."""
         if self._state is not None:
             self._close_writers()
@@ -389,13 +389,14 @@ class ArrowLogWriter(BaseLogWriter):
                 # Read back the files to build the sync table.
                 self._build_deferred_sync_table()
 
-            # The log is complete, move it out of the incomplete directory. Files already in the log
-            # directory are kept, e.g. a per-log map. The sync table marks a log as converted and goes last.
-            log_dir = self._logs_root / self._state.log_metadata.split / self._state.log_metadata.log_name
-            log_dir.mkdir(parents=True, exist_ok=True)
-            for file_path in sorted(self._state.log_dir.iterdir(), key=lambda path: path.name == "sync.arrow"):
-                file_path.replace(log_dir / file_path.name)
-            os.removedirs(self._state.log_dir)  # also removes the parent directories, if empty
+            # A complete log is moved out of the incomplete directory. Files already in the log directory
+            # are kept, e.g. a per-log map. The sync table marks a log as converted and goes last.
+            if not incomplete:
+                log_dir = self._logs_root / self._state.log_metadata.split / self._state.log_metadata.log_name
+                log_dir.mkdir(parents=True, exist_ok=True)
+                for file_path in sorted(self._state.log_dir.iterdir(), key=lambda path: path.name == "sync.arrow"):
+                    file_path.replace(log_dir / file_path.name)
+                os.removedirs(self._state.log_dir)  # also removes the parent directories, if empty
 
         self._state = None
 

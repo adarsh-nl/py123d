@@ -104,8 +104,8 @@ class TestReset:
         assert (log_dir / "ego_state_se3.arrow").exists() and (log_dir / "sync.arrow").exists()
         assert not (tmp_path / ".incomplete").exists()
 
-    def test_unclosed_log_stays_incomplete(self, tmp_path: Path):
-        """A log that is never closed does not reach the log directory, and is replaced when converted again."""
+    def test_incomplete_log_is_closed_but_not_moved(self, tmp_path: Path):
+        """An incomplete log is readable in the incomplete directory, and is replaced when converted again."""
         log_meta = make_log_metadata()
         log_dir = tmp_path / log_meta.split / log_meta.log_name
         incomplete_log_dir = tmp_path / ".incomplete" / log_meta.split / log_meta.log_name
@@ -114,10 +114,11 @@ class TestReset:
         writer = self._make_writer(tmp_path)
         writer.reset(log_meta)
         writer.write_sync(ModalitiesSync(timestamp=Timestamp.from_us(0), modalities=[ego]))
-        (incomplete_log_dir / "leftover.arrow").touch()
+        writer.close(incomplete=True)
+        assert pa.ipc.open_file(str(incomplete_log_dir / "sync.arrow")).read_all().num_rows == 1
         assert not log_dir.exists()
+        (incomplete_log_dir / "leftover.arrow").touch()
 
-        writer = self._make_writer(tmp_path)
         writer.reset(log_meta)
         writer.write_sync(ModalitiesSync(timestamp=Timestamp.from_us(0), modalities=[ego]))
         writer.close()

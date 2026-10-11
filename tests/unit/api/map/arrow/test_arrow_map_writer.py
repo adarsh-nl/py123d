@@ -114,15 +114,24 @@ class TestArrowMapWriterReset:
             "write_arrow_table",
             lambda table, path: (written_to.append(path), write_arrow_table(table, path)),
         )
+        metadata = _per_log_metadata() if per_log else _global_metadata()
+        map_file = tmp_path / ("logs/test_train/log_001/map.arrow" if per_log else "maps/test/test_boston.arrow")
+        incomplete_map_file = (
+            tmp_path / "maps" / ".incomplete" / ("test_train/log_001.arrow" if per_log else "test/boston.arrow")
+        )
+
+        # An incomplete map is closed in the incomplete directory, but not moved.
         writer = _make_writer(tmp_path)
-        writer.reset(_per_log_metadata() if per_log else _global_metadata())
+        writer.reset(metadata)
+        writer.write_map_object(make_crosswalk(object_id="cw_1"))
+        writer.close(incomplete=True)
+        assert incomplete_map_file.exists() and not map_file.exists()
+
+        writer.reset(metadata)
         writer.write_map_object(make_crosswalk(object_id="cw_1"))
         writer.close()
-
-        assert [path.parent for path in written_to] == [tmp_path / "maps" / ".incomplete"]
-        assert list((tmp_path / "maps" / ".incomplete").iterdir()) == []
-        map_file = "logs/test_train/log_001/map.arrow" if per_log else "maps/test/test_boston.arrow"
-        assert (tmp_path / map_file).exists()
+        assert written_to == [incomplete_map_file, incomplete_map_file]
+        assert map_file.exists() and not incomplete_map_file.exists()
 
     def test_returns_true_if_file_does_not_exist(self, tmp_path: Path) -> None:
         """reset() returns True when the target file does not yet exist."""
