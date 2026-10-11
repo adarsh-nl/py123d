@@ -324,9 +324,14 @@ Each object is one of the supported element types (the
    * - ``SpeedBump``
      - surface
      - Speed-reduction area.
+   * - ``TrafficLight``
+     - point
+     - Traffic light housing: a 3D bounding box plus the lanes it controls. Its state over time
+       is a modality (``TrafficLightDetections``), not part of the map.
 
-Surface elements derive from ``BaseMapSurfaceObject`` (a polygon ``outline``), and
-line elements derive from ``BaseMapLineObject`` (a ``polyline``).
+Surface elements derive from ``BaseMapSurfaceObject`` (a polygon ``outline``),
+line elements derive from ``BaseMapLineObject`` (a ``polyline``), and point elements
+derive from ``BaseMapPointObject`` (a ``point``).
 
 .. note::
   If a map element type isn't listed above, then new layers can be added. Please

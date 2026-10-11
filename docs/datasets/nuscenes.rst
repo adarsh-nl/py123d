@@ -69,8 +69,8 @@ Available Modalities
      - ✓
      - The bounding boxes are available with the :class:`~py123d.parser.registry.NuScenesBoxDetectionLabel`. For more information, see :class:`~py123d.datatypes.BoxDetectionsSE3`.
    * - Traffic Lights
-     - X
-     -
+     - (✓)
+     - No light states are recorded. The map expansion's ``traffic_light`` layer is converted to :class:`~py123d.datatypes.TrafficLight` objects (pose of the housing, lanes of the road blocks it guides, and the stop lines naming it). Not verified on real map data yet.
    * - Cameras
      - ✓
      -

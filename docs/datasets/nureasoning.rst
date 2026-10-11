@@ -65,7 +65,7 @@ Available Modalities
      - The bounding boxes are available with the :class:`~py123d.parser.registry.NureasoningBoxDetectionLabel`. Not available in the test split. For more information, see :class:`~py123d.datatypes.BoxDetectionsSE3`.
    * - Traffic Lights
      - (✓)
-     - Traffic-signal states are provided per frame. Not available in the test split.
+     - Traffic-signal states are provided per frame. Not available in the test split. The map lists the traffic lights as single points, converted to :class:`~py123d.datatypes.TrafficLight` objects without lane association (the map has no link between lights and lanes) and with the default housing size.
        The lane they refer to can lie outside the clip's map.
    * - Cameras
      - ✓

@@ -63,8 +63,8 @@ Available Modalities
      - ✓
      - Auto-labeled 3D cuboid tracks, interpolated onto the same 10 Hz grid as the ego poses. By default, positions are smoothed and tracks shorter than 3 s are dropped, as in NVIDIA's simulator (see Conversion). NuRec shares the Physical AI AV taxonomy (:class:`~py123d.parser.registry.PhysicalAIAVBoxDetectionLabel`). See :class:`~py123d.datatypes.BoxDetectionsSE3`.
    * - Traffic Lights
-     - X
-     - No per-timestep light states are recorded. Light-controlled stopping points are converted as :class:`~py123d.datatypes.StopZone` instead.
+     - (✓)
+     - No per-timestep light states are recorded. The clipgt ``traffic_light`` boxes are converted to :class:`~py123d.datatypes.TrafficLight` objects with the lanes they control (``LIGHT_TO_LANE``), and light-controlled stopping points as :class:`~py123d.datatypes.StopZone`.
    * - Cameras
      - X
      - The dataset ships no recorded camera frames. Views are rendered from the reconstruction.
@@ -237,8 +237,8 @@ ignores. They are listed here in case the schema later covers them:
      - Arrows, text and symbols painted on the road (polygons). ``ROAD_LINE`` covers painted *lines* only.
    * - ``pole``
      - Sign and signal poles (polylines).
-   * - ``traffic_light`` / ``traffic_sign`` geometry
-     - 3D boxes with position, dimensions, orientation and sign category (``..._R1_STOP``, ``..._R2_SPEED_LIMIT``, ...). The map schema has no layer for a roadside device, so only their effect is converted, as the type of the :class:`~py123d.datatypes.StopZone` and :class:`~py123d.datatypes.Intersection` they control.
+   * - ``traffic_sign`` geometry
+     - 3D boxes with position, dimensions, orientation and sign category (``..._R1_STOP``, ``..._R2_SPEED_LIMIT``, ...). The map schema has no layer for signs, so only their effect is converted, as the type of the :class:`~py123d.datatypes.StopZone` and :class:`~py123d.datatypes.Intersection` they control. Traffic light boxes are converted, see :class:`~py123d.datatypes.TrafficLight`.
    * - ``lane.lane_direction``
      - Whether a lane goes straight, turns, or both. :class:`~py123d.datatypes.Lane` has no turn-direction field.
    * - ``lane.left_edge_styles`` / ``colors``

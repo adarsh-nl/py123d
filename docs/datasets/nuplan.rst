@@ -69,7 +69,7 @@ Available Modalities
      - The bounding boxes are available, see :class:`~py123d.datatypes.BoxDetectionsSE3`.
    * - Traffic Lights
      - ✓
-     - Traffic lights include the status and the lane id they are associated with, see :class:`~py123d.datatypes.TrafficLightDetections`.
+     - Traffic lights include the status and the lane id they are associated with, see :class:`~py123d.datatypes.TrafficLightDetections`. The maps also provide the lights themselves (position, heading and the lane connectors they control) as :class:`~py123d.datatypes.TrafficLight` objects.
    * - Cameras
      - (✓)
      -
@@ -351,6 +351,7 @@ Dataset Issues
 * **Camera & Lidar:** There are synchronization issues between the sensors and the ego vehicle state.
 * **Bounding Boxes:** Due to the auto-labeling process of nuPlan, some bounding boxes may be noisy.
 * **Traffic Lights:** The status of the traffic lights are inferred from the vehicle movements. As such, there may be incorrect labels.
+* **Traffic Light Map Objects:** The ``traffic_lights`` map layer has 3D points with a heading but no lane reference. The controlled lane connectors are found through the traffic-light stop polygons (``stop_polygons.traffic_light_fids`` and ``lane_connectors.traffic_light_stop_line_fids``), which also become the ``stop_zone_ids``. The map has no elevation, so the z-coordinate of a light is its height above ground. The housing size is not provided and uses the 123D default.
 
 Citation
 ~~~~~~~~
