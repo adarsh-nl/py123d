@@ -1,5 +1,7 @@
 """Downloads stay inside the output directory; each streaming config owns one folder in the download root."""
 
+import io
+import tarfile
 import types
 import zipfile
 from pathlib import Path
@@ -117,18 +119,25 @@ class TestPandasetZip:
 class TestArchiveStaging:
     """Archives are staged next to their destination instead of in the system temp directory."""
 
-    def test_nureasoning_clip_zip(self, tmp_path: Path, monkeypatch):
+    def test_nureasoning_clip_tar(self, tmp_path: Path, monkeypatch):
         local_dirs: List[Path] = []
 
         def hf_hub_download(repo_id, repo_type, filename, revision, token, local_dir):
             local_dirs.append(Path(local_dir))
-            return str(_write_zip(Path(local_dir) / filename, ["clip-a/metadata.json"]))
+            archive_path = Path(local_dir) / filename
+            archive_path.parent.mkdir(parents=True, exist_ok=True)
+            with tarfile.open(archive_path, "w") as tar:
+                info = tarfile.TarInfo("clip-a/metadata.json")
+                info.size = 2
+                tar.addfile(info, io.BytesIO(b"{}"))
+            return str(archive_path)
 
-        monkeypatch.setattr(nureasoning_download, "_require_hf_hub", lambda: (None, hf_hub_download))
+        fake_hf_hub = types.SimpleNamespace(hf_hub_download=hf_hub_download)
+        monkeypatch.setattr(nureasoning_download, "_require_hf_hub", lambda: fake_hf_hub)
         clip_dir = NureasoningDownloader().download_single_clip("train", "part_1", "clip-a", tmp_path)
-        assert local_dirs == [tmp_path / "_zip" / "clip-a"]
+        assert local_dirs[0].parent == tmp_path
         assert (clip_dir / "metadata.json").is_file()
-        assert not (tmp_path / "_zip" / "clip-a").exists()
+        assert [path.name for path in tmp_path.iterdir()] == ["clip-a"]
 
     def test_truckdrive_modality_zip(self, tmp_path: Path):
         scene_dir = tmp_path / "scene_01_1"
