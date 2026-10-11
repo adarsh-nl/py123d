@@ -1,8 +1,9 @@
+import contextlib
 import gc
 import logging
+import os
 import shutil
 import traceback
-from contextlib import suppress
 from functools import partial
 from pathlib import Path
 from typing import List
@@ -66,6 +67,13 @@ def main(cfg: DictConfig) -> None:
     else:
         logger.info(f"Conversion completed successfully for all {len(map_parsers)} maps and {len(log_parsers)} logs.")
     _cleanup_incomplete(cfg, failed_maps, failed_logs)
+
+    # Streaming datasets delete the raw files they downloaded, unless ``keep_downloads`` is set.
+    if not cfg.dataset.get("keep_downloads", True):
+        shutil.rmtree(cfg.dataset.parser.downloader.output_dir, ignore_errors=True)
+        # The download root goes too, once no other conversion has a folder in it (rmdir fails otherwise).
+        with contextlib.suppress(OSError):
+            os.rmdir(cfg.dataset_paths.py123d_download_root)
 
 
 def _convert_maps(args: List[BaseMapParser], cfg: DictConfig) -> List[str]:
@@ -164,7 +172,7 @@ def _cleanup_incomplete(cfg: DictConfig, failed_maps: List[str], failed_logs: Li
     # The incomplete directories are only removed if empty, another conversion may be writing to them.
     for incomplete_root in (incomplete_logs_root, incomplete_maps_root):
         for directory in [*incomplete_root.glob("*"), incomplete_root]:
-            with suppress(OSError):
+            with contextlib.suppress(OSError):
                 directory.rmdir()
 
 
