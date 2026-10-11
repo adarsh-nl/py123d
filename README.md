@@ -128,11 +128,17 @@ Open `http://localhost:8080` to browse the converted scenes interactively.
       <td>✓&nbsp;/&nbsp;10</td><td>✗</td><td>✓</td>
     </tr>
     <tr>
-      <td rowspan="6"><b>Auto-labeled</b></td>
+      <td rowspan="7"><b>Auto-labeled</b></td>
       <td align="left"><a href="https://waymo.com/open/">WOD-Mot.</a></td>
       <td>2021</td><td>574.1</td><td>10,323.5*</td><td>103,354</td>
       <td>✗</td><td>✗</td>
       <td>✓&nbsp;/&nbsp;10</td><td>✓&nbsp;/&nbsp;10</td><td>✓</td>
+    </tr>
+    <tr>
+      <td align="left"><a href="https://github.com/Shifts-Project/shifts/tree/main/sdc">Shifts</a></td>
+      <td>2021</td><td>1,283.4</td><td><i>n/a</i></td><td>461,815</td>
+      <td>✗</td><td>✗</td>
+      <td>✓&nbsp;/&nbsp;5</td><td>✓&nbsp;/&nbsp;5</td><td>✓</td>
     </tr>
     <tr>
       <td align="left"><a href="https://www.nuscenes.org/nuplan">nuPlan</a></td>
@@ -191,6 +197,7 @@ Open `http://localhost:8080` to browse the converted scenes interactively.
 
 - Updated **nuReasoning** to the full release on Hugging Face ([`nureasoning/nuReasoning`](https://huggingface.co/datasets/nureasoning/nuReasoning), gated): new `nureasoning_train`, `nureasoning_val` and `nureasoning_test` splits with `dataset=nureasoning` and `dataset=nureasoning-stream`, `.tar` clip archives, and the test split with its challenge questions as a custom modality. Breaking: the downloader selects py123d split names instead of repository folders, its `keep_zip` option is now `keep_archive`, and a clip's repeated key frame is stored once.
 - Added [**KITScenes Multimodal**](https://arxiv.org/abs/2606.02956) dataset support (experimental): ego poses, 9 cameras, 7 lidars, 3 radars and per-scene Lanelet2 HD maps, plus a Hugging Face downloader and streaming conversion. Added the `PCAM_F1`, `LIDAR_FRONT_LEFT` and `LIDAR_FRONT_RIGHT` sensor IDs. Note: the ego vehicle dimensions assume a long-wheelbase BMW 7 Series G12; only the wheelbase is confirmed by the authors' publications.
+- Added [**Shifts**](https://arxiv.org/abs/2107.07455) vehicle motion prediction dataset support: ego, vehicle and pedestrian tracks, per-scene vector maps with synthesized lane boundaries, per-lane traffic light states and scene tags for the canonical `shifts_train`, `shifts_val` and `shifts_test` partitions, with `dataset=shifts` and a `dataset=shifts-stream` variant that streams the scene archives from Yandex Object Storage by HTTP range requests (`num_scenes` truncates a split).
 - Downloads no longer use the system temp directory. Streaming conversions download into `$PY123D_DATA_ROOT/.download/<dataset>` (or `$PY123D_DOWNLOAD_ROOT/<dataset>`) and delete that folder when the conversion ends, unless `keep_downloads=true`; `py123d-download` keeps archives inside the output directory until they are extracted.
 - Conversions no longer leave half-written logs behind. Logs are written to `$PY123D_DATA_ROOT/logs/.incomplete` (maps to `maps/.incomplete`) and moved into place once complete; `py123d-conversion` reports at the end whether everything completed and lists the maps and logs that did not. Maps and logs that did not complete are closed and stay in `.incomplete` for inspection, unless `keep_incomplete=false`.
 

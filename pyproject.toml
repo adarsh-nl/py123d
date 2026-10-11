@@ -121,6 +121,9 @@ ncore = [
 examples = [
     "torch",
 ]
+shifts = [
+    "protobuf>=6.31",
+]
 
 [tool.uv]
 conflicts = [
@@ -180,6 +183,7 @@ lint.ignore = [
 exclude = [
     "__init__.py",
     "src/py123d/conversion/datasets/wod/waymo_open_dataset/protos",
+    "src/py123d/parser/shifts/protos",
 ]
 lint.fixable = ["ALL"]
 lint.unfixable = []

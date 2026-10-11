@@ -524,3 +524,25 @@ class GriffinBoxDetectionLabel(BoxDetectionLabel):
             GriffinBoxDetectionLabel.BICYCLE: DefaultBoxDetectionLabel.TWO_WHEELER,
         }
         return mapping[self]
+
+
+@register_box_detection_label
+class ShiftsBoxDetectionLabel(BoxDetectionLabel):
+    """
+    Semantic labels of bounding box detections in the Shifts vehicle motion prediction dataset, see [1]_.
+
+    References
+    ----------
+    .. [1] https://github.com/Shifts-Project/shifts/blob/main/sdc/ysdc_dataset_api/proto/dataset.proto
+    """
+
+    VEHICLE = 0
+    PEDESTRIAN = 1
+
+    def to_default(self) -> DefaultBoxDetectionLabel:
+        """Inherited, see superclass."""
+        mapping = {
+            ShiftsBoxDetectionLabel.VEHICLE: DefaultBoxDetectionLabel.VEHICLE,
+            ShiftsBoxDetectionLabel.PEDESTRIAN: DefaultBoxDetectionLabel.PERSON,
+        }
+        return mapping[self]
