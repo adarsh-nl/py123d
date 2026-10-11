@@ -22,7 +22,7 @@ export PY123D_DATA_ROOT="$HOME/py123d_workspace/data"
 ```
 which can be added to your `~/.bashrc` or to your bash scripts. Optionally, you can adjust all dataset paths in the hydra config: `py123d/script/config/common/default_dataset_paths.yaml`.
 
-Streaming conversions (`dataset=<name>-stream`) download the source data into `$PY123D_DATA_ROOT/.download/<name>` and delete that folder when the conversion ends; pass `keep_downloads=true` to keep it. The system temp directory is not used. To download onto another disk, set
+Streaming conversions (`dataset=<name>-stream`) download the source data into `$PY123D_DATA_ROOT/.download/<name>` and delete that folder when the conversion ends (and `.download` itself once it is empty); pass `keep_downloads=true` to keep it. The system temp directory is not used. To download onto another disk, set
 ```bash
 export PY123D_DOWNLOAD_ROOT="/path/to/scratch"
 ```
