@@ -199,9 +199,9 @@ section above):
   at read time. To change this behavior, adapt the ``nureasoning-mini.yaml`` converter
   configuration.
 
-**Streaming mode** — materialize the selected clips from the HuggingFace repo into a
-session-scoped temp directory at parser construction time, convert from it, and delete the
-temp directory afterwards. The mini subset corresponds to parts 1–3 of the HuggingFace
+**Streaming mode** — materialize the selected clips from the HuggingFace repo into
+``$PY123D_DATA_ROOT/.download/nureasoning`` at parser construction time, convert from it,
+and delete that directory afterwards. The mini subset corresponds to parts 1–3 of the HuggingFace
 ``train`` split.
 
 .. code-block:: bash
@@ -213,7 +213,7 @@ The repo is public, so no token is required; if needed, ``hf_token`` falls back 
 
 .. note::
   Streaming mode forces ``camera_store_option: "jpeg_binary"`` and
-  ``lidar_store_option: "binary"`` (with the ``laz`` codec) — the temp directory is
+  ``lidar_store_option: "binary"`` (with the ``laz`` codec) — the download directory is
   deleted immediately after conversion, so any ``"path"`` references would point at
   vanished sources.
 

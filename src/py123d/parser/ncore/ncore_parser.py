@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import contextlib
 import logging
-import tempfile
+import shutil
 from pathlib import Path
 from typing import TYPE_CHECKING, Dict, Iterator, List, Optional, Tuple, Union, cast
 
@@ -115,9 +115,9 @@ class NCoreParser(BaseDatasetParser):
             of the downloader's own selection in streaming mode.
         :param downloader: Optional :class:`NCoreDownloader` used for streaming mode.
             When provided, each log parser pulls its assigned clip via
-            :meth:`NCoreDownloader.download_single_clip` into a per-clip
-            :class:`tempfile.TemporaryDirectory`, converts it, and deletes the temp dir
-            before moving on. Clip selection comes from
+            :meth:`NCoreDownloader.download_single_clip` into
+            ``<downloader.output_dir>/<clip_id>``, converts it, and deletes that
+            directory before moving on. Clip selection comes from
             :meth:`NCoreDownloader.resolve_clip_ids`; no local ``ncore_data_root`` is
             required in this mode.
         """
@@ -223,7 +223,7 @@ class NCoreLogParser(BaseLogParser):
         )
 
     # ------------------------------------------------------------------------------------------------------------------
-    # Clip materialization (local path OR per-clip temp download)
+    # Clip materialization (local path OR per-clip download)
     # ------------------------------------------------------------------------------------------------------------------
 
     @contextlib.contextmanager
@@ -231,23 +231,26 @@ class NCoreLogParser(BaseLogParser):
         """Yields ``(data_root, sequence_manifest_path)`` for the duration of one iterator pass.
 
         In local mode these are the pre-set instance attributes. In streaming mode the
-        clip is downloaded into a fresh ``tempfile.TemporaryDirectory`` which is deleted
-        when the context manager exits (i.e. after the parser generator is exhausted and
-        after ``_ClipContext.close()`` releases the zarr readers).
+        clip is downloaded into ``<downloader.output_dir>/<clip_id>`` which is deleted when the
+        context manager exits (i.e. after the parser generator is exhausted and after
+        ``_ClipContext.close()`` releases the zarr readers).
         """
         if self._downloader is None:
             assert self._data_root is not None and self._sequence_manifest_path is not None
             yield self._data_root, self._sequence_manifest_path
             return
 
-        with tempfile.TemporaryDirectory(prefix=f"ncore_{self._clip_id}_") as tmp:
-            tmp_root = Path(tmp)
-            logger.info("Streaming NCore clip %s to %s", self._clip_id, tmp_root)
+        assert self._downloader.output_dir is not None, "`downloader.output_dir` must be set for streaming."
+        clip_root = self._downloader.output_dir / self._clip_id
+        logger.info("Streaming NCore clip %s to %s", self._clip_id, clip_root)
+        try:
             manifest_path = self._downloader.download_single_clip(
                 clip_id=self._clip_id,
-                output_dir=tmp_root,
+                output_dir=clip_root,
             )
-            yield tmp_root, manifest_path
+            yield clip_root, manifest_path
+        finally:
+            shutil.rmtree(clip_root, ignore_errors=True)
 
     # ------------------------------------------------------------------------------------------------------------------
     # Synchronized iteration (lidar-rate)
@@ -428,12 +431,12 @@ class _ClipContext:
 
     def close(self) -> None:
         # SequenceComponentGroupsReader does not expose a public close; dropping references lets
-        # garbage collection release the underlying zarr/itar file handles before the temp dir
-        # (if any) is cleaned up by the surrounding context manager.
+        # garbage collection release the underlying zarr/itar file handles before the download
+        # dir (if any) is cleaned up by the surrounding context manager.
         self._sequence_reader = None
         self.camera_readers = {}
 
-        # Drop the per-path LRU caches in the lidar loader so cleaned-up temp files don't
+        # Drop the per-path LRU caches in the lidar loader so cleaned-up files don't
         # linger as stale reader references.
         from py123d.parser.ncore.ncore_sensor_io import _open_lidar_reader
 

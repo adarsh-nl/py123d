@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import contextlib
 import logging
-import tempfile
+import shutil
 from pathlib import Path
 from typing import TYPE_CHECKING, Dict, Iterator, List, Optional, Tuple, Union
 
@@ -84,9 +84,9 @@ class PandasetParser(BaseDatasetParser):
         :param test_log_names: List of log names to include in the test split.
         :param downloader: Optional :class:`~py123d.parser.pandaset.pandaset_download.PandasetDownloader`
             used for streaming mode. When provided, each log parser extracts its assigned
-            log from the cached ``pandaset.zip`` into a per-log
-            :class:`tempfile.TemporaryDirectory`, converts it, and deletes the temp dir
-            before moving on. Log selection comes from
+            log from the cached ``pandaset.zip`` into
+            ``<downloader.output_dir>/<log_name>``, converts it, and deletes that
+            directory before moving on. Log selection comes from
             :meth:`PandasetDownloader.resolve_log_names`, intersected with the
             per-split lists so each log is routed to the right split. No local
             ``pandaset_data_root`` is required in this mode.
@@ -218,23 +218,22 @@ class PandasetLogParser(BaseLogParser):
         """Yield the on-disk log path for the duration of one iterator pass.
 
         In local mode this is the pre-set ``source_log_path``. In streaming mode
-        the log is extracted from the cached ``pandaset.zip`` into a fresh
-        :class:`tempfile.TemporaryDirectory` which is deleted when the context
-        manager exits (i.e. after ``iter_modalities_sync`` is exhausted).
+        the log is extracted from the cached ``pandaset.zip`` into
+        ``<downloader.output_dir>/<log_name>`` which is deleted when the context manager
+        exits (i.e. after ``iter_modalities_sync`` is exhausted).
         """
         if self._downloader is None:
             assert self._source_log_path is not None
             yield self._source_log_path
             return
 
-        with tempfile.TemporaryDirectory(prefix=f"py123d-pandaset-{self._log_name}-") as tmp:
-            tmp_root = Path(tmp)
-            logger.info("Streaming PandaSet log %s to %s", self._log_name, tmp_root)
-            log_path = self._downloader.download_single_log(
-                log_name=self._log_name,
-                output_dir=tmp_root,
-            )
-            yield log_path
+        output_dir = self._downloader.output_dir
+        assert output_dir is not None, "`downloader.output_dir` must be set for streaming."
+        logger.info("Streaming PandaSet log %s to %s", self._log_name, output_dir)
+        try:
+            yield self._downloader.download_single_log(log_name=self._log_name, output_dir=output_dir)
+        finally:
+            shutil.rmtree(output_dir / self._log_name, ignore_errors=True)
 
     def iter_modalities_sync(self) -> Iterator[ModalitiesSync]:
         """Inherited, see superclass."""

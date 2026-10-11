@@ -4,15 +4,15 @@ parser:
 
   splits: ["nureasoning-mini_train"]
 
-  # Ignored when `downloader` is set — clips are materialized into a managed temp dir.
+  # Ignored when `downloader` is set — clips are materialized into the downloader's output_dir.
   nureasoning_data_root: null
 
   downloader:
     _target_: py123d.parser.nureasoning.nureasoning_download.NureasoningDownloader
     _convert_: 'all'
 
-    # Not used in streaming — the parser assigns a tempfile.TemporaryDirectory as output_dir.
-    output_dir: null
+    # Deleted when the conversion ends. Set a path outside the download root to keep the downloads.
+    output_dir: ${dataset_paths.py123d_download_root}/nureasoning
 
     revision: main
     hf_token: null              # falls back to $HF_TOKEN / $HUGGINGFACE_HUB_TOKEN (repo is public)
@@ -40,7 +40,7 @@ log_writer_config:
   force_map_conversion: ${force_map_conversion}
   async_conversion: ${async_conversion}
 
-  # Streaming forces self-contained payloads. Do NOT switch to "path" — the temp dir is
+  # Streaming forces self-contained payloads. Do NOT switch to "path" — the download dir is
   # deleted after conversion, which would leave the Arrow logs pointing at vanished files.
   camera_store_option: "jpeg_binary"  # "jpeg_binary", "png_binary" — "path" forbidden here
   # NOTE: raw "binary" preserves nuReasoning's merged-lidar features (lidar_info / ring / intensity).

@@ -179,8 +179,8 @@ Sensor data is stored as references to the original files, so the converted logs
   py123d-conversion dataset=kitscenes-stream \
       'dataset.parser.scene_ids=[c34c778f-ad8c-0aa9-7e1a-c86a73f887c7]'
 
-In streaming mode, scenes are downloaded to a managed temporary directory, converted with all sensor data stored in
-the logs, and cleaned up afterwards.
+In streaming mode, scenes are downloaded to ``$PY123D_DATA_ROOT/.download/kitscenes``, converted with all sensor data
+stored in the logs, and deleted afterwards.
 
 
 Conventions

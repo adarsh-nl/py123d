@@ -1,7 +1,7 @@
 # Streaming variant of dataset=nuplan — the parser materializes a chosen archive
-# subset from the public nuPlan AWS bucket into a session-scoped
-# tempfile.TemporaryDirectory at construction time, converts from it, and deletes
-# the temp dir on parser destruction.
+# subset from the public nuPlan AWS bucket into $PY123D_DATA_ROOT/.download/nuplan
+# at construction time, converts from it, and deletes that directory when the
+# conversion ends.
 #
 # Mirrors `nuplan.yaml` for splits + sync_config + writer flags; the data paths
 # are null (filled in by the downloader), sensor storage is forced to self-contained
@@ -27,17 +27,17 @@ parser:
 
   splits: [nuplan_train, nuplan_val, nuplan_test]
 
-  # Ignored when `downloader` is set — the parser materializes archives into a temp dir.
+  # Ignored when `downloader` is set — the parser materializes archives into the downloader's output_dir.
   nuplan_data_root: null
-  nuplan_maps_root: null        # auto-detected at <temp>/maps
-  nuplan_sensor_root: null      # auto-detected at <temp>/nuplan-v1.1/sensor_blobs
+  nuplan_maps_root: null        # auto-detected at <output_dir>/maps
+  nuplan_sensor_root: null      # auto-detected at <output_dir>/nuplan-v1.1/sensor_blobs
 
   downloader:
     _target_: py123d.parser.nuplan.nuplan_download.NuplanDownloader
     _convert_: 'all'
 
-    # Ignored in streaming mode — archives land in the parser's tempfile.TemporaryDirectory.
-    output_dir: null
+    # Deleted when the conversion ends. Set a path outside the download root to keep the downloads.
+    output_dir: ${dataset_paths.py123d_download_root}/nuplan
 
     # Kept in lockstep with parser.splits so the downloader fetches exactly what the
     # parser will consume.

@@ -356,16 +356,20 @@ Subclass :class:`~py123d.parser.base_downloader.BaseDownloader`, placing it at
           """Fetch the selected data into ``self.output_dir``."""
           ...
 
-The base class provides ``output_dir`` (destination; ``None`` means a temp
-directory is assigned at runtime) and ``dry_run`` (log the plan without writing).
+The base class provides ``output_dir`` (destination) and ``dry_run`` (log the plan
+without writing).
 
 Integration follows two paths:
 
 * **Standalone CLI**: ``py123d-download dataset=mydataset`` instantiates the
   downloader and calls ``download()``.
 * **Streaming during conversion**: the parser accepts an optional ``downloader=``
-  argument, redirects its ``output_dir`` to a session-scoped temp directory,
-  downloads before reading, and cleans up on destruction.
+  argument and downloads into the downloader's ``output_dir`` before reading. The
+  ``-stream`` config sets it to ``${dataset_paths.py123d_download_root}/mydataset``,
+  i.e. ``$PY123D_DATA_ROOT/.download/mydataset`` (or ``$PY123D_DOWNLOAD_ROOT/mydataset``),
+  and ``py123d-conversion`` deletes that directory when the conversion ends. Do not
+  use ``tempfile`` for downloads: the system temp directory is often small or
+  RAM-backed on clusters.
 
 
 .. _adding-datasets-hydra:
@@ -433,8 +437,8 @@ config. Keep them as distinct files as they differ in data roots and storage:
 
   .. tab-item:: Stream (``mydataset-stream.yaml``)
 
-    Roots are ``null`` (auto-detected in a temp dir); a ``downloader`` block is
-    added and sensors are stored as **binary** (temp files vanish after
+    Roots are ``null`` (auto-detected in the download dir); a ``downloader`` block is
+    added and sensors are stored as **binary** (downloaded files vanish after
     conversion).
 
     .. code-block:: yaml
@@ -447,7 +451,7 @@ config. Keep them as distinct files as they differ in data roots and storage:
         downloader:
           _target_: py123d.parser.mydataset.mydataset_download.MyDatasetDownloader
           _convert_: 'all'
-          output_dir: null            # temp dir assigned at runtime
+          output_dir: ${dataset_paths.py123d_download_root}/mydataset  # deleted afterwards
           splits: ${dataset.parser.splits}
           dry_run: false
 

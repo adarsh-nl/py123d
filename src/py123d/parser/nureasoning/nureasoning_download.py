@@ -25,15 +25,15 @@ listing + per-clip selection) and :mod:`py123d.parser.pandaset.pandaset_download
 (zip extraction):
 
 1. ``py123d-download dataset=nureasoning`` — :meth:`download` fetches every selected
-   clip's zip into a session-scoped :class:`tempfile.TemporaryDirectory`, extracts it
-   into ``output_dir/<split>/<part>/<clip>/``, and deletes the zip. The repo's leading
+   clip's zip into ``output_dir/_zip``, extracts it into
+   ``output_dir/<split>/<part>/<clip>/``, and deletes the zip. The repo's leading
    ``data/`` prefix is stripped so ``output_dir`` *is* the local ``data/`` root
    (== ``nureasoning_data_root``).
 
 2. The :class:`~py123d.parser.nureasoning.nureasoning_parser.NureasoningParser`
-   streaming path — each log parser calls :meth:`download_single_clip` to drop its
-   assigned clip into a per-clip :class:`tempfile.TemporaryDirectory`, converts it,
-   and deletes the temp dir before moving on.
+   streaming path — the parser calls :meth:`download` the same way at construction
+   time, by default into ``<py123d_download_root>/nureasoning``, which is deleted
+   when the conversion ends.
 
 Selection is incremental: pick ``splits`` (train/validation/test), ``parts``
 (part_1, ...), explicit ``log_names``, or the first/random ``num_logs``. The repo tree
@@ -48,7 +48,6 @@ import logging
 import os
 import random as _random_mod
 import shutil
-import tempfile
 import zipfile
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
@@ -67,6 +66,8 @@ from py123d.parser.nureasoning.utils.nureasoning_constants import (
 logger = logging.getLogger(__name__)
 
 _ZIP_SUFFIX = ".zip"
+# Subdirectory of the output directory the clip zips are downloaded into before extraction.
+_ZIP_DIR = "_zip"
 
 
 def _require_hf_hub():
@@ -192,8 +193,6 @@ class NureasoningDownloader(BaseDownloader):
     * :meth:`download` — bulk-fetch every selected clip, extracting each into
       ``output_dir/<split>/<part>/<clip>/``. Used by ``py123d-download dataset=nureasoning``.
     * :meth:`download_single_clip` — fetch one clip into a caller-provided directory.
-      Used by :class:`~py123d.parser.nureasoning.nureasoning_parser.NureasoningParser`
-      in streaming mode to drop each clip into a per-clip temp directory.
 
     The instance is picklable (simple attrs only) so it can be embedded in log-parser
     objects shipped across a Ray process pool.
@@ -351,10 +350,9 @@ class NureasoningDownloader(BaseDownloader):
     def download(self) -> None:
         """Inherited, see superclass.
 
-        Bulk flow: every selected clip zip is downloaded into a session-scoped
-        :class:`tempfile.TemporaryDirectory`, extracted into
-        ``output_dir/<split>/<part>/<clip>/``, and (unless ``keep_zip``) the zip is
-        discarded. Already-extracted clips are skipped, so re-running resumes.
+        Bulk flow: every selected clip zip is downloaded into ``output_dir/_zip``,
+        extracted into ``output_dir/<split>/<part>/<clip>/``, and (unless ``keep_zip``)
+        the zip is discarded. Already-extracted clips are skipped, so re-running resumes.
         """
         entries = self.resolve_zip_entries()
 
@@ -378,10 +376,12 @@ class NureasoningDownloader(BaseDownloader):
         assert self.output_dir is not None, "NureasoningDownloader.output_dir must be set before download()."
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
+        zip_dir = self.output_dir / _ZIP_DIR
         failures: List[str] = []
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             future_to_entry = {
-                executor.submit(self._fetch_and_extract, entry, self._bulk_clip_dir(entry)): entry for entry in entries
+                executor.submit(self._fetch_and_extract, entry, self._bulk_clip_dir(entry), zip_dir): entry
+                for entry in entries
             }
             for future in tqdm(as_completed(future_to_entry), total=len(future_to_entry), desc="nuReasoning clips"):
                 entry = future_to_entry[future]
@@ -390,6 +390,7 @@ class NureasoningDownloader(BaseDownloader):
                 except Exception as exc:  # noqa: BLE001 — collect and report all failures.
                     logger.error("Failed to download/extract clip %s: %s", entry.clip_name, exc)
                     failures.append(entry.clip_name)
+        shutil.rmtree(zip_dir, ignore_errors=True)
 
         if failures:
             raise RuntimeError(
@@ -418,27 +419,30 @@ class NureasoningDownloader(BaseDownloader):
             split=split, part=part, clip_name=clip_name, repo_path=_repo_path_for(split, part, clip_name)
         )
         clip_dir = Path(output_dir) / clip_name
-        return self._fetch_and_extract(entry, clip_dir)
+        return self._fetch_and_extract(entry, clip_dir, Path(output_dir) / _ZIP_DIR)
 
-    def _fetch_and_extract(self, entry: NureasoningClipEntry, clip_dir: Path) -> Path:
-        """Download ``entry``'s zip and extract it into ``clip_dir`` (idempotent)."""
+    def _fetch_and_extract(self, entry: NureasoningClipEntry, clip_dir: Path, zip_dir: Path) -> Path:
+        """Download ``entry``'s zip below ``zip_dir`` and extract it into ``clip_dir`` (idempotent)."""
         clip_dir = Path(clip_dir)
         if clip_dir.exists() and any(clip_dir.iterdir()):
             logger.debug("Skip already-extracted clip %s at %s", entry.clip_name, clip_dir)
             return clip_dir
 
         _, hf_hub_download = _require_hf_hub()
-        with tempfile.TemporaryDirectory(prefix=f"py123d-nureasoning-{entry.clip_name}-") as tmp:
+        clip_zip_dir = zip_dir / entry.clip_name
+        try:
             local_zip = hf_hub_download(
                 repo_id=NUREASONING_REPO_ID,
                 repo_type=NUREASONING_REPO_TYPE,
                 filename=entry.repo_path,
                 revision=self.revision,
                 token=self.hf_token,
-                local_dir=tmp,
+                local_dir=clip_zip_dir,
             )
             extract_nureasoning_clip(Path(local_zip), clip_dir)
             if self.keep_zip:
                 clip_dir.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(local_zip, clip_dir.parent / f"{entry.clip_name}{_ZIP_SUFFIX}")
+        finally:
+            shutil.rmtree(clip_zip_dir, ignore_errors=True)
         return clip_dir

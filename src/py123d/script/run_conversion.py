@@ -1,11 +1,13 @@
 import gc
 import logging
+import shutil
 import traceback
 from functools import partial
+from pathlib import Path
 from typing import List
 
 import hydra
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 
 from py123d.common.execution.utils import executor_map_chunked_list
 from py123d.common.runtime import setup_runtime
@@ -52,6 +54,11 @@ def main(cfg: DictConfig) -> None:
         dataset_parser.get_log_parsers(),
         name=f"Logs {parser_class_name}",
     )
+
+    # Streaming conversions delete what they downloaded into the download root.
+    download_dir = OmegaConf.select(cfg, "dataset.parser.downloader.output_dir")
+    if download_dir is not None and Path(download_dir).is_relative_to(cfg.dataset_paths.py123d_download_root):
+        shutil.rmtree(download_dir, ignore_errors=True)
 
 
 def _convert_maps(args: List[BaseMapParser], cfg: DictConfig) -> List:

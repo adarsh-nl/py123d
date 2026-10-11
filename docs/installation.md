@@ -22,6 +22,11 @@ export PY123D_DATA_ROOT="$HOME/py123d_workspace/data"
 ```
 which can be added to your `~/.bashrc` or to your bash scripts. Optionally, you can adjust all dataset paths in the hydra config: `py123d/script/config/common/default_dataset_paths.yaml`.
 
+Streaming conversions (`dataset=<name>-stream`) download the source data into `$PY123D_DATA_ROOT/.download/<dataset>` and delete that folder when the conversion ends. The system temp directory is not used. To download onto another disk, set
+```bash
+export PY123D_DOWNLOAD_ROOT="/path/to/scratch"
+```
+
 The 123D conversion includes:
 - **Logs:** Each log is a directory containing per-modality `.arrow` files (e.g. ego state, cameras, lidar, bounding boxes, traffic lights) and a `sync.arrow` synchronization table. Each modality is stored at its native capture rate. When using MP4 camera compression, the `.mp4` files are also stored in the log directory.
 - **Maps:** The maps are static and store our unified HD-Map API. Maps can either be defined per-log (e.g. in AV2, Waymo) or globally for a certain location (e.g. nuPlan, nuScenes, CARLA). We use `.arrow` files to store maps.

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import logging
-import tempfile
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, Iterator, List, Optional, Tuple, Union
 
@@ -83,8 +82,7 @@ class NureasoningParser(BaseDatasetParser):
         :param downloader: Optional
             :class:`~py123d.parser.nureasoning.nureasoning_download.NureasoningDownloader`
             for streaming mode. When provided, the selected clips are materialized once
-            into a session-scoped :class:`tempfile.TemporaryDirectory` (deleted when this
-            parser is garbage-collected), and both log and map parsers read from it just
+            into ``downloader.output_dir``, and both log and map parsers read from it just
             like local mode. Clip selection (splits/parts/log_names/num_logs) is driven
             by the downloader; ``nureasoning_data_root`` is not required in this mode.
         """
@@ -96,9 +94,6 @@ class NureasoningParser(BaseDatasetParser):
         self._splits = splits
         self._log_names = log_names
         self._downloader = downloader
-        # Handle for the streaming temp dir (kept alive for the parser's lifetime). Set early so
-        # __del__ is safe even if materialization below raises.
-        self._stream_temp_dir_handle: Optional[tempfile.TemporaryDirectory] = None
 
         if downloader is not None:
             self._nureasoning_data_root = self._materialize_streaming_root(downloader)
@@ -111,26 +106,16 @@ class NureasoningParser(BaseDatasetParser):
         self._split_log_path_pairs: List[Tuple[str, Path]] = self._collect_split_log_path_pairs()
 
     def _materialize_streaming_root(self, downloader: "NureasoningDownloader") -> Path:
-        """Download the selected clips into a managed temp dir and return it as the data root.
+        """Download the selected clips and return their directory as the data root.
 
         Mirrors the nuScenes streaming model: because nuReasoning maps are per-log
         (``map.pkl`` lives inside each clip), the cleanest way to feed both the log and
-        map parsers is to materialize the selected subset once into a temp directory that
-        mirrors the on-disk layout, then read from it exactly like local mode. The temp
-        dir (and the extracted clips) is removed in :meth:`__del__`.
+        map parsers is to materialize the selected subset once into a directory that
+        mirrors the on-disk layout, then read from it exactly like local mode.
         """
-        self._stream_temp_dir_handle = tempfile.TemporaryDirectory(prefix="py123d-nureasoning-")
-        tmp_root = Path(self._stream_temp_dir_handle.name)
-        # The BaseDownloader contract lets the parser assign output_dir when it is None.
-        downloader.output_dir = tmp_root
-        logger.info("nuReasoning streaming: materializing selected clips into %s", tmp_root)
         downloader.download()
-        return tmp_root
-
-    def __del__(self) -> None:
-        handle = getattr(self, "_stream_temp_dir_handle", None)
-        if handle is not None:
-            handle.cleanup()
+        assert downloader.output_dir is not None
+        return downloader.output_dir
 
     def _collect_split_log_path_pairs(self) -> List[Tuple[str, Path]]:
         """Collects the (split, log_path) pairs for the specified splits."""
