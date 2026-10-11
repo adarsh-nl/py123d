@@ -138,4 +138,10 @@ def build_logger(cfg: DictConfig) -> logging.Logger:
 
     logger.setLevel(level=LOGGING_LEVEL_MAP[cfg.logger_level])
 
+    # Hydra's "disabled" job logging (see default_common.yaml) also disables every logger that exists
+    # when it is applied, i.e. the loggers of all modules imported before the hydra main is called.
+    for name, existing_logger in logging.root.manager.loggerDict.items():
+        if isinstance(existing_logger, logging.Logger) and name.split(".")[0] == "py123d":
+            existing_logger.disabled = False
+
     return logger

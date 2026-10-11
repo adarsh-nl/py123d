@@ -88,16 +88,54 @@ class TestReset:
         return ArrowLogWriter(config, logs_root=tmp_path, sensors_root=tmp_path)
 
     def test_creates_log_dir(self, tmp_path: Path):
+        """The log is written to the incomplete directory and moved to the log directory by close()."""
         writer = self._make_writer(tmp_path)
         log_meta = make_log_metadata()
         result = writer.reset(log_meta)
         assert result is True
         log_dir = tmp_path / log_meta.split / log_meta.log_name
-        assert log_dir.exists()
+        incomplete_log_dir = tmp_path / ".incomplete" / log_meta.split / log_meta.log_name
+        assert incomplete_log_dir.exists() and not log_dir.exists()
         # Write at least one sync frame before close (close without writes requires SyncConfig)
         ego = _make_ego(0)
         writer.write_sync(ModalitiesSync(timestamp=Timestamp.from_us(0), modalities=[ego]))
+        assert (incomplete_log_dir / "ego_state_se3.arrow").exists() and not log_dir.exists()
         writer.close()
+        assert (log_dir / "ego_state_se3.arrow").exists() and (log_dir / "sync.arrow").exists()
+        assert not (tmp_path / ".incomplete").exists()
+
+    def test_unclosed_log_stays_incomplete(self, tmp_path: Path):
+        """A log that is never closed does not reach the log directory, and is replaced when converted again."""
+        log_meta = make_log_metadata()
+        log_dir = tmp_path / log_meta.split / log_meta.log_name
+        incomplete_log_dir = tmp_path / ".incomplete" / log_meta.split / log_meta.log_name
+        ego = _make_ego(0)
+
+        writer = self._make_writer(tmp_path)
+        writer.reset(log_meta)
+        writer.write_sync(ModalitiesSync(timestamp=Timestamp.from_us(0), modalities=[ego]))
+        (incomplete_log_dir / "leftover.arrow").touch()
+        assert not log_dir.exists()
+
+        writer = self._make_writer(tmp_path)
+        writer.reset(log_meta)
+        writer.write_sync(ModalitiesSync(timestamp=Timestamp.from_us(0), modalities=[ego]))
+        writer.close()
+        assert (log_dir / "sync.arrow").exists() and not (log_dir / "leftover.arrow").exists()
+
+    def test_close_keeps_existing_files(self, tmp_path: Path):
+        """Files already in the log directory are kept, e.g. a per-log map written by the map writer."""
+        log_meta = make_log_metadata()
+        log_dir = tmp_path / log_meta.split / log_meta.log_name
+        log_dir.mkdir(parents=True)
+        (log_dir / "map.arrow").write_bytes(b"map")
+
+        writer = self._make_writer(tmp_path)
+        writer.reset(log_meta)
+        writer.write_sync(ModalitiesSync(timestamp=Timestamp.from_us(0), modalities=[_make_ego(0)]))
+        writer.close()
+        assert (log_dir / "map.arrow").read_bytes() == b"map"
+        assert (log_dir / "sync.arrow").exists()
 
     def test_existing_sync_skips(self, tmp_path: Path):
         """If sync.arrow exists and force=False, reset returns False."""
