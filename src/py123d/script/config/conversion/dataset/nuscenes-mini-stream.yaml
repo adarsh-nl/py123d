@@ -8,6 +8,9 @@
 # Usage:
 #   py123d-conversion dataset=nuscenes-mini-stream
 
+# Keep the raw files in parser.downloader.output_dir after the conversion, instead of deleting them.
+keep_downloads: ${keep_downloads}
+
 parser:
   _target_: py123d.parser.nuscenes.nuscenes_parser.NuScenesParser
   _convert_: 'all'
@@ -23,7 +26,7 @@ parser:
     _target_: py123d.parser.nuscenes.nuscenes_download.NuscenesDownloader
     _convert_: 'all'
 
-    output_dir: ${dataset_paths.py123d_download_root}/nuscenes
+    output_dir: ${dataset_paths.py123d_download_root}/nuscenes-mini
 
     email: null                     # falls back to $NUSCENES_EMAIL
     password: null                  # falls back to $NUSCENES_PASSWORD

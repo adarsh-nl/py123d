@@ -19,6 +19,9 @@
 #   py123d-conversion dataset=pandaset-stream \
 #     'dataset.parser.downloader.log_names=[001, 002, 005]'
 
+# Keep the raw files in parser.downloader.output_dir after the conversion, instead of deleting them.
+keep_downloads: ${keep_downloads}
+
 parser:
   _target_: py123d.parser.pandaset.pandaset_parser.PandasetParser
   _convert_: 'all'
@@ -33,11 +36,14 @@ parser:
   val_log_names: []
   test_log_names: []
 
+  keep_downloads: ${dataset.keep_downloads}
+
   downloader:
     _target_: py123d.parser.pandaset.pandaset_download.PandasetDownloader
     _convert_: 'all'
 
-    # Each log is extracted into <output_dir>/<log_name> and deleted once converted.
+    # Each log is extracted into <output_dir>/<log_name> and deleted once converted,
+    # unless keep_downloads is set.
     output_dir: ${dataset_paths.py123d_download_root}/pandaset
 
     # Shared on-disk location for pandaset.zip. null → <output_dir>/_zip, deleted when the

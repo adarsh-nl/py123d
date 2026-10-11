@@ -175,10 +175,10 @@ them when the conversion ends:
   py123d-conversion dataset=wod-motion-stream \
       'dataset.parser.downloader.shard_indices={wod-motion_train: [0, 1, 2], wod-motion_val: [0]}'
 
-  # Keep downloads in a dedicated cache dir instead of deleting them:
+  # Keep the downloaded files instead of deleting them (a later run reuses them):
   py123d-conversion dataset=wod-motion-stream \
       dataset.parser.downloader.num_shards=1 \
-      dataset.parser.downloader.output_dir=/mnt/scratch/wod_motion_cache
+      keep_downloads=true
 
 The motion bucket is anonymously readable after license acceptance, so ADC is not strictly
 required; if available it will be used automatically.

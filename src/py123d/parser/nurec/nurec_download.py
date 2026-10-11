@@ -25,7 +25,7 @@ reusable library functions. :class:`NuRecDownloader` powers two paths:
    into :attr:`NuRecDownloader.output_dir`.
 
 2. The ``NuRecParser`` streaming path — fetches all selected sequences into
-   ``<py123d_download_root>/nurec``, which is converted and deleted afterwards.
+   :attr:`NuRecDownloader.output_dir`, which is converted and deleted afterwards.
 """
 
 from __future__ import annotations

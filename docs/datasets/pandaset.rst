@@ -229,8 +229,8 @@ the remaining logs of the run, and deleted when the conversion ends:
 .. warning::
   Even small values of ``num_logs`` trigger the full ~44.5 GB download —
   the HuggingFace mirror is a single monolithic zip, not per-log archives. The zip
-  is deleted when the conversion ends, so set ``zip_cache_dir`` if you plan to
-  stream more than once.
+  is deleted when the conversion ends, so set ``keep_downloads=true`` or
+  ``zip_cache_dir`` if you plan to stream more than once.
 
 .. note::
   Streaming mode forces ``camera_store_option: "jpeg_binary"`` and

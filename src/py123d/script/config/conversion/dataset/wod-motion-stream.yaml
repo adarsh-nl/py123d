@@ -7,6 +7,9 @@
 #   py123d-conversion dataset=wod-motion-stream \
 #     'dataset.parser.downloader.shard_indices={wod-motion_train: [0, 1, 2]}'
 
+# Keep the raw files in parser.downloader.output_dir after the conversion, instead of deleting them.
+keep_downloads: ${keep_downloads}
+
 parser:
   _target_: py123d.parser.wod.wod_motion_parser.WODMotionParser
   _convert_: 'all'
@@ -31,7 +34,7 @@ parser:
     _target_: py123d.parser.wod.wod_download.WODMotionDownloader
     _convert_: 'all'
 
-    # Deleted when the conversion ends. Set a path outside the download root to keep the downloads.
+    # Deleted when the conversion ends, unless keep_downloads is set.
     output_dir: ${dataset_paths.py123d_download_root}/wod-motion
 
     # splits is bound to parser.splits so the downloader and parser stay in lockstep.

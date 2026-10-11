@@ -367,9 +367,11 @@ Integration follows two paths:
   argument and downloads into the downloader's ``output_dir`` before reading. The
   ``-stream`` config sets it to ``${dataset_paths.py123d_download_root}/mydataset``,
   i.e. ``$PY123D_DATA_ROOT/.download/mydataset`` (or ``$PY123D_DOWNLOAD_ROOT/mydataset``),
-  and ``py123d-conversion`` deletes that directory when the conversion ends. Do not
-  use ``tempfile`` for downloads: the system temp directory is often small or
-  RAM-backed on clusters.
+  and declares ``keep_downloads: ${keep_downloads}``. ``py123d-conversion`` deletes
+  that directory when the conversion ends, unless ``keep_downloads`` is true. Give
+  every ``-stream`` config its own folder, named after the config, so parallel jobs
+  never share one. Do not use ``tempfile`` for downloads: the system temp directory
+  is often small or RAM-backed on clusters.
 
 
 .. _adding-datasets-hydra:
@@ -443,6 +445,8 @@ config. Keep them as distinct files as they differ in data roots and storage:
 
     .. code-block:: yaml
 
+      keep_downloads: ${keep_downloads}   # false: delete downloader.output_dir afterwards
+
       parser:
         _target_: py123d.parser.mydataset.mydataset_parser.MyDatasetParser
         _convert_: 'all'
@@ -451,7 +455,7 @@ config. Keep them as distinct files as they differ in data roots and storage:
         downloader:
           _target_: py123d.parser.mydataset.mydataset_download.MyDatasetDownloader
           _convert_: 'all'
-          output_dir: ${dataset_paths.py123d_download_root}/mydataset  # deleted afterwards
+          output_dir: ${dataset_paths.py123d_download_root}/mydataset
           splits: ${dataset.parser.splits}
           dry_run: false
 

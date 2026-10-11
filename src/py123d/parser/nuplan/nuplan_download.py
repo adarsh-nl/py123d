@@ -39,8 +39,7 @@ entry points:
    ``$NUPLAN_DATA_ROOT``), and deletes the ``.zip`` files on successful extraction.
 2. The :class:`NuplanParser` streaming path (``dataset=nuplan-stream`` /
    ``dataset=nuplan-mini-stream``) — materializes archives the same way at parser
-   construction time, by default into ``<py123d_download_root>/nuplan``, which is
-   deleted when the conversion ends.
+   construction time; the conversion deletes them when it ends.
 
 Archive selection is driven by two orthogonal axes:
 

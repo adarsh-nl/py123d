@@ -105,6 +105,7 @@ class NCoreParser(BaseDatasetParser):
         ncore_data_root: Optional[Union[Path, str]] = None,
         max_clips: Optional[int] = None,
         downloader: Optional[NCoreDownloader] = None,
+        keep_downloads: bool = False,
     ) -> None:
         """Initialize the NCore parser.
 
@@ -116,10 +117,11 @@ class NCoreParser(BaseDatasetParser):
         :param downloader: Optional :class:`NCoreDownloader` used for streaming mode.
             When provided, each log parser pulls its assigned clip via
             :meth:`NCoreDownloader.download_single_clip` into
-            ``<downloader.output_dir>/<clip_id>``, converts it, and deletes that
+            ``<downloader.output_dir>/clips/<clip_id>``, converts it, and deletes that
             directory before moving on. Clip selection comes from
             :meth:`NCoreDownloader.resolve_clip_ids`; no local ``ncore_data_root`` is
             required in this mode.
+        :param keep_downloads: Keeps the clips downloaded in streaming mode instead of deleting them.
         """
         for split in splits:
             assert split in NCORE_SPLITS, f"Split {split} is not available. Available splits: {NCORE_SPLITS}"
@@ -128,6 +130,7 @@ class NCoreParser(BaseDatasetParser):
         self._splits = splits
         self._max_clips = max_clips
         self._downloader: Optional[NCoreDownloader] = downloader
+        self._keep_downloads = keep_downloads
 
         if downloader is not None:
             self._data_root: Optional[Path] = None
@@ -187,6 +190,7 @@ class NCoreParser(BaseDatasetParser):
                 sequence_manifest_path=manifest,
                 split=split,
                 downloader=self._downloader,
+                keep_downloads=self._keep_downloads,
             )
             for clip_id, manifest, split in self._clip_entries
         ]
@@ -206,12 +210,14 @@ class NCoreLogParser(BaseLogParser):
         sequence_manifest_path: Optional[Path],
         split: str,
         downloader: Optional[NCoreDownloader] = None,
+        keep_downloads: bool = False,
     ) -> None:
         self._data_root = data_root
         self._clip_id = clip_id
         self._sequence_manifest_path = sequence_manifest_path
         self._split = split
         self._downloader = downloader
+        self._keep_downloads = keep_downloads
 
     def get_log_metadata(self) -> LogMetadata:
         """Inherited, see superclass."""
@@ -231,26 +237,24 @@ class NCoreLogParser(BaseLogParser):
         """Yields ``(data_root, sequence_manifest_path)`` for the duration of one iterator pass.
 
         In local mode these are the pre-set instance attributes. In streaming mode the
-        clip is downloaded into ``<downloader.output_dir>/<clip_id>`` which is deleted when the
-        context manager exits (i.e. after the parser generator is exhausted and after
-        ``_ClipContext.close()`` releases the zarr readers).
+        clip is downloaded into ``<downloader.output_dir>/clips/<clip_id>`` which is deleted
+        (unless ``keep_downloads``) when the context manager exits (i.e. after the parser generator
+        is exhausted and after ``_ClipContext.close()`` releases the zarr readers).
         """
         if self._downloader is None:
             assert self._data_root is not None and self._sequence_manifest_path is not None
             yield self._data_root, self._sequence_manifest_path
             return
 
-        assert self._downloader.output_dir is not None, "`downloader.output_dir` must be set for streaming."
-        clip_root = self._downloader.output_dir / self._clip_id
-        logger.info("Streaming NCore clip %s to %s", self._clip_id, clip_root)
+        output_dir = self._downloader.output_dir
+        assert output_dir is not None, "`downloader.output_dir` must be set for streaming."
+        logger.info("Streaming NCore clip %s to %s", self._clip_id, output_dir)
         try:
-            manifest_path = self._downloader.download_single_clip(
-                clip_id=self._clip_id,
-                output_dir=clip_root,
-            )
-            yield clip_root, manifest_path
+            manifest_path = self._downloader.download_single_clip(clip_id=self._clip_id, output_dir=output_dir)
+            yield output_dir, manifest_path
         finally:
-            shutil.rmtree(clip_root, ignore_errors=True)
+            if not self._keep_downloads:
+                shutil.rmtree(output_dir / "clips" / self._clip_id, ignore_errors=True)
 
     # ------------------------------------------------------------------------------------------------------------------
     # Synchronized iteration (lidar-rate)

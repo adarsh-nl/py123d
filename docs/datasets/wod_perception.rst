@@ -183,10 +183,10 @@ large for local disk and you only need a handful of segments for iteration:
   py123d-conversion dataset=wod-perception-stream \
       'dataset.parser.downloader.shard_indices={wod-perception_val: [0, 1, 2]}'
 
-  # Keep downloads in a dedicated cache dir instead of deleting them:
+  # Keep the downloaded files instead of deleting them (a later run reuses them):
   py123d-conversion dataset=wod-perception-stream \
       dataset.parser.downloader.num_shards=1 \
-      dataset.parser.downloader.output_dir=/mnt/scratch/wod_perception_cache
+      keep_downloads=true
 
 .. warning::
   Perception segments are ~1 GB each — even small values of ``num_shards``

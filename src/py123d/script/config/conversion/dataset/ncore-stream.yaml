@@ -12,6 +12,9 @@
 #   py123d-conversion dataset=ncore-stream \
 #     'dataset.parser.downloader.clip_ids=[000da9de-0ee5-465a-9a2d-e7e91d3016bb]'
 
+# Keep the raw files in parser.downloader.output_dir after the conversion, instead of deleting them.
+keep_downloads: ${keep_downloads}
+
 parser:
   _target_: py123d.parser.ncore.ncore_parser.NCoreParser
   _convert_: 'all'
@@ -21,12 +24,14 @@ parser:
   # Ignored when `downloader` is set — clips land in per-clip download directories.
   ncore_data_root: null
   max_clips: null
+  keep_downloads: ${dataset.keep_downloads}
 
   downloader:
     _target_: py123d.parser.ncore.ncore_download.NCoreDownloader
     _convert_: 'all'
 
-    # Each clip is downloaded into <output_dir>/<clip_id> and deleted once converted.
+    # Each clip is downloaded into <output_dir>/clips/<clip_id> and deleted once converted,
+    # unless keep_downloads is set.
     output_dir: ${dataset_paths.py123d_download_root}/ncore
 
     revision: main

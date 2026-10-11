@@ -1,3 +1,6 @@
+# Keep the raw files in parser.downloader.output_dir after the conversion, instead of deleting them.
+keep_downloads: ${keep_downloads}
+
 parser:
   _target_: py123d.parser.nureasoning.nureasoning_parser.NureasoningParser
   _convert_: 'all'
@@ -11,8 +14,8 @@ parser:
     _target_: py123d.parser.nureasoning.nureasoning_download.NureasoningDownloader
     _convert_: 'all'
 
-    # Deleted when the conversion ends. Set a path outside the download root to keep the downloads.
-    output_dir: ${dataset_paths.py123d_download_root}/nureasoning
+    # Deleted when the conversion ends, unless keep_downloads is set.
+    output_dir: ${dataset_paths.py123d_download_root}/nureasoning-mini
 
     revision: main
     hf_token: null              # falls back to $HF_TOKEN / $HUGGINGFACE_HUB_TOKEN (repo is public)

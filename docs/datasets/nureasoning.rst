@@ -200,7 +200,7 @@ section above):
   configuration.
 
 **Streaming mode** — materialize the selected clips from the HuggingFace repo into
-``$PY123D_DATA_ROOT/.download/nureasoning`` at parser construction time, convert from it,
+``$PY123D_DATA_ROOT/.download/nureasoning-mini`` at parser construction time, convert from it,
 and delete that directory afterwards. The mini subset corresponds to parts 1–3 of the HuggingFace
 ``train`` split.
 

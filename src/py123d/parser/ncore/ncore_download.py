@@ -217,7 +217,7 @@ class NCoreDownloader(BaseDownloader):
 
         :param output_dir: Destination directory for :meth:`download`. Ignored by
             :meth:`download_single_clip` (which takes its own ``output_dir`` arg);
-            streaming parsers download each clip into ``<output_dir>/<clip_id>``.
+            streaming parsers download each clip into ``<output_dir>/clips/<clip_id>``.
         :param revision: HuggingFace dataset branch, tag, or commit.
         :param hf_token: HF access token. Resolves through
             :func:`resolve_hf_token` — falls back to ``$HF_TOKEN`` /

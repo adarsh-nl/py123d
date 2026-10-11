@@ -11,7 +11,7 @@ so that two different entry points can share the same implementation:
    its ``downloader`` constructor argument and calls :meth:`BaseDownloader.download`
    before reading the materialized files. The ``-stream`` configs set
    :attr:`BaseDownloader.output_dir` to ``<py123d_download_root>/<dataset>``, which
-   ``py123d-conversion`` deletes when the conversion ends.
+   ``py123d-conversion`` deletes when the conversion ends, unless ``keep_downloads`` is set.
 
 Subclasses set :attr:`output_dir` and :attr:`dry_run` in their ``__init__`` and
 implement :meth:`download`.

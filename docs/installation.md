@@ -22,10 +22,11 @@ export PY123D_DATA_ROOT="$HOME/py123d_workspace/data"
 ```
 which can be added to your `~/.bashrc` or to your bash scripts. Optionally, you can adjust all dataset paths in the hydra config: `py123d/script/config/common/default_dataset_paths.yaml`.
 
-Streaming conversions (`dataset=<name>-stream`) download the source data into `$PY123D_DATA_ROOT/.download/<dataset>` and delete that folder when the conversion ends. The system temp directory is not used. To download onto another disk, set
+Streaming conversions (`dataset=<name>-stream`) download the source data into `$PY123D_DATA_ROOT/.download/<name>` and delete that folder when the conversion ends; pass `keep_downloads=true` to keep it. The system temp directory is not used. To download onto another disk, set
 ```bash
 export PY123D_DOWNLOAD_ROOT="/path/to/scratch"
 ```
+Each streaming config has its own folder, so conversions of different datasets can run in parallel. Two conversions of the *same* streaming config share one folder and must not run at the same time, unless each gets its own download root (e.g. `export PY123D_DOWNLOAD_ROOT="$PY123D_DATA_ROOT/.download/$SLURM_JOB_ID"`).
 
 The 123D conversion includes:
 - **Logs:** Each log is a directory containing per-modality `.arrow` files (e.g. ego state, cameras, lidar, bounding boxes, traffic lights) and a `sync.arrow` synchronization table. Each modality is stored at its native capture rate. When using MP4 camera compression, the `.mp4` files are also stored in the log directory.

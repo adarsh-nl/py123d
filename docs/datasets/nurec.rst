@@ -169,7 +169,7 @@ disk is skipped with a warning, so a partial download converts partially.
 ``dataset.parser.splits`` selects any combination of the four splits.
 
 Each config has a ``-stream`` variant, which downloads the scenes into
-``$PY123D_DATA_ROOT/.download/nurec`` instead of reading ``NUREC_DATA_ROOT`` and deletes
+``$PY123D_DATA_ROOT/.download/nurec-<...>`` instead of reading ``NUREC_DATA_ROOT`` and deletes
 them when the conversion ends. All selected scenes are downloaded before the conversion
 starts, so limit the selection unless that disk can hold it (set ``PY123D_DOWNLOAD_ROOT``
 to download elsewhere):

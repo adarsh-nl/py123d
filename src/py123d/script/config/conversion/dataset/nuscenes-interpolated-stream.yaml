@@ -18,6 +18,9 @@
 #   py123d-conversion dataset=nuscenes-interpolated-stream \
 #     'dataset.parser.splits=[nuscenes-interpolated_val]'
 
+# Keep the raw files in parser.downloader.output_dir after the conversion, instead of deleting them.
+keep_downloads: ${keep_downloads}
+
 parser:
   _target_: py123d.parser.nuscenes.nuscenes_parser.NuScenesParser
   _convert_: 'all'
@@ -40,8 +43,8 @@ parser:
     _target_: py123d.parser.nuscenes.nuscenes_download.NuscenesDownloader
     _convert_: 'all'
 
-    # Deleted when the conversion ends. Set a path outside the download root to keep the downloads.
-    output_dir: ${dataset_paths.py123d_download_root}/nuscenes
+    # Deleted when the conversion ends, unless keep_downloads is set.
+    output_dir: ${dataset_paths.py123d_download_root}/nuscenes-interpolated
 
     email: null                  # falls back to $NUSCENES_EMAIL
     password: null               # falls back to $NUSCENES_PASSWORD

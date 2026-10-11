@@ -190,7 +190,7 @@ Open `http://localhost:8080` to browse the converted scenes interactively.
 <summary><b>v0.8.0</b> (unreleased)</summary>
 
 - Added [**KITScenes Multimodal**](https://arxiv.org/abs/2606.02956) dataset support (experimental): ego poses, 9 cameras, 7 lidars, 3 radars and per-scene Lanelet2 HD maps, plus a Hugging Face downloader and streaming conversion. Added the `PCAM_F1`, `LIDAR_FRONT_LEFT` and `LIDAR_FRONT_RIGHT` sensor IDs. Note: the ego vehicle dimensions assume a long-wheelbase BMW 7 Series G12; only the wheelbase is confirmed by the authors' publications.
-- Downloads no longer use the system temp directory. Streaming conversions download into `$PY123D_DATA_ROOT/.download/<dataset>` (or `$PY123D_DOWNLOAD_ROOT/<dataset>`) and delete that folder when the conversion ends; `py123d-download` keeps archives inside the output directory until they are extracted.
+- Downloads no longer use the system temp directory. Streaming conversions download into `$PY123D_DATA_ROOT/.download/<dataset>` (or `$PY123D_DOWNLOAD_ROOT/<dataset>`) and delete that folder when the conversion ends, unless `keep_downloads=true`; `py123d-download` keeps archives inside the output directory until they are extracted.
 
 </details>
 

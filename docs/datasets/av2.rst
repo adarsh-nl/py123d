@@ -202,10 +202,10 @@ is too large for local disk and you only need a handful of logs for iteration:
   py123d-conversion dataset=av2-sensor-stream \
       'dataset.parser.downloader.log_ids={av2-sensor_val: [00a6ffc1-6ce9-3bc3-a060-6006e9893a1a]}'
 
-  # Keep downloads in a dedicated cache dir instead of deleting them:
+  # Keep the downloaded files instead of deleting them (a later run reuses them):
   py123d-conversion dataset=av2-sensor-stream \
       dataset.parser.downloader.num_logs=1 \
-      dataset.parser.downloader.output_dir=/mnt/scratch/av2_sensor_cache
+      keep_downloads=true
 
 .. warning::
   Each AV2 Sensor log is ~250 MB (~1000 objects: annotations + calibration + map +

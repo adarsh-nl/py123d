@@ -32,8 +32,7 @@ listing + per-clip selection) and :mod:`py123d.parser.pandaset.pandaset_download
 
 2. The :class:`~py123d.parser.nureasoning.nureasoning_parser.NureasoningParser`
    streaming path — the parser calls :meth:`download` the same way at construction
-   time, by default into ``<py123d_download_root>/nureasoning``, which is deleted
-   when the conversion ends.
+   time; the conversion deletes the clips when it ends.
 
 Selection is incremental: pick ``splits`` (train/validation/test), ``parts``
 (part_1, ...), explicit ``log_names``, or the first/random ``num_logs``. The repo tree

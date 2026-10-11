@@ -10,6 +10,9 @@
 #     dataset.parser.downloader.include_cameras=true \
 #     dataset.parser.downloader.include_lidar=true
 
+# Keep the raw files in parser.downloader.output_dir after the conversion, instead of deleting them.
+keep_downloads: ${keep_downloads}
+
 parser:
   _target_: py123d.parser.nuplan.nuplan_parser.NuplanParser
   _convert_: 'all'
@@ -24,7 +27,7 @@ parser:
     _target_: py123d.parser.nuplan.nuplan_download.NuplanDownloader
     _convert_: 'all'
 
-    output_dir: ${dataset_paths.py123d_download_root}/nuplan
+    output_dir: ${dataset_paths.py123d_download_root}/nuplan-mini
 
     splits: ${dataset.parser.splits}
 

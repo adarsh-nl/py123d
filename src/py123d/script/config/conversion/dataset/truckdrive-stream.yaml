@@ -6,6 +6,9 @@
 #   py123d-conversion dataset=truckdrive-stream \
 #     'dataset.parser.scene_names=[scene_28_1]'
 
+# Keep the raw files in parser.downloader.output_dir after the conversion, instead of deleting them.
+keep_downloads: ${keep_downloads}
+
 parser:
   _target_: py123d.parser.truckdrive.truckdrive_parser.TruckDriveDatasetParser
   _convert_: 'all'
@@ -19,7 +22,7 @@ parser:
     _target_: py123d.parser.truckdrive.truckdrive_download.TruckDriveDownloader
     _convert_: 'all'
 
-    # Deleted when the conversion ends. Set a path outside the download root to keep the downloads.
+    # Deleted when the conversion ends, unless keep_downloads is set.
     output_dir: ${dataset_paths.py123d_download_root}/truckdrive
     dry_run: false
     scenes: ${dataset.parser.scene_names}

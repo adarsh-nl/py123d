@@ -24,6 +24,9 @@
 #   py123d-conversion dataset=nuscenes-stream \
 #     'dataset.parser.stream_archives=[v1.0-trainval_meta.tgz, v1.0-trainval03_blobs.tgz, nuScenes-map-expansion-v1.3.zip, can_bus.zip]'
 
+# Keep the raw files in parser.downloader.output_dir after the conversion, instead of deleting them.
+keep_downloads: ${keep_downloads}
+
 parser:
   _target_: py123d.parser.nuscenes.nuscenes_parser.NuScenesParser
   _convert_: 'all'
@@ -46,7 +49,7 @@ parser:
     _target_: py123d.parser.nuscenes.nuscenes_download.NuscenesDownloader
     _convert_: 'all'
 
-    # Deleted when the conversion ends. Set a path outside the download root to keep the downloads.
+    # Deleted when the conversion ends, unless keep_downloads is set.
     output_dir: ${dataset_paths.py123d_download_root}/nuscenes
 
     email: null                  # falls back to $NUSCENES_EMAIL

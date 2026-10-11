@@ -34,8 +34,7 @@ two entry points:
    ``$NUSCENES_DATA_ROOT``), and deletes the ``.tgz`` files on successful extraction.
 2. The ``NuScenesParser`` streaming path (``dataset=nuscenes-stream``) — materializes
    the selected archives the same way at parser construction time so the nuScenes
-   devkit can load its metadata tables, by default into
-   ``<py123d_download_root>/nuscenes``, which is deleted when the conversion ends.
+   devkit can load its metadata tables; the conversion deletes them when it ends.
 
 The HD-map expansion add-on (``nuScenes-map-expansion-v1.3.zip``) is **not** in the
 archive catalog above and is **not** fetched by this downloader — users who need

@@ -15,6 +15,9 @@
 #     dataset.parser.downloader.num_shards=1 \
 #     'dataset.parser.splits=[wod-perception_val]'
 
+# Keep the raw files in parser.downloader.output_dir after the conversion, instead of deleting them.
+keep_downloads: ${keep_downloads}
+
 parser:
   _target_: py123d.parser.wod.wod_perception_parser.WODPerceptionParser
   _convert_: 'all'
@@ -32,7 +35,7 @@ parser:
     _target_: py123d.parser.wod.wod_download.WODPerceptionDownloader
     _convert_: 'all'
 
-    # Deleted when the conversion ends. Set a path outside the download root to keep the downloads.
+    # Deleted when the conversion ends, unless keep_downloads is set.
     output_dir: ${dataset_paths.py123d_download_root}/wod-perception
 
     splits: ${dataset.parser.splits}
