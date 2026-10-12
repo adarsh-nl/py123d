@@ -9,8 +9,8 @@ downloader:
   # Labelled splits to download: train 22 GB, val 13 GB, test 31 GB. The raw (unlabelled) splits are not supported.
   splits: ["once_train", "once_val", "once_test"]
 
-  # null = all seven cameras, [] = lidar only, or a subset like [cam01, cam03].
-  cameras: null
+  # All seven cameras by default; [] = lidar only, or a subset like [cam01, cam03].
+  cameras: [cam01, cam03, cam05, cam06, cam07, cam08, cam09]
 
   keep_archives: false
   max_workers: 2

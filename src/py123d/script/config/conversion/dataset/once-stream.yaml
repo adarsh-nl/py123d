@@ -27,7 +27,8 @@ parser:
     output_dir: ${dataset_paths.py123d_download_root}/once
 
     splits: null           # set by the parser
-    cameras: null          # null = all seven cameras, [] = lidar only, or a subset like [cam01, cam03]
+    # All seven cameras by default; [] = lidar only, or a subset like [cam01, cam03].
+    cameras: [cam01, cam03, cam05, cam06, cam07, cam08, cam09]
     keep_archives: false   # keep the tar files next to the extracted data
     max_workers: 2
     dry_run: false
