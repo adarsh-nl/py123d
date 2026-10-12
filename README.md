@@ -14,7 +14,7 @@
   <a href="https://github.com/kesai-labs/py123d/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-green"></a>
 </p>
 
-**One library for autonomous driving datasets.** 123D converts raw data from Argoverse 2, nuScenes, nuPlan, KITTI-360, PandaSet, and Waymo into a unified [Apache Arrow](https://arrow.apache.org/) format, and then gives you a single API to read cameras, lidar, HD maps, and labels across all of them.
+**One library for autonomous driving datasets.** 123D converts raw data from Argoverse 2, nuScenes, nuPlan, KITTI-360, PandaSet, ONCE, and Waymo into a unified [Apache Arrow](https://arrow.apache.org/) format, and then gives you a single API to read cameras, lidar, HD maps, and labels across all of them.
 
 ## 📰 News
 - **2026-09-08**: We released [`py123d_garage`](https://github.com/kesai-labs/py123d_garage), a framework for multi-dataset training of driving policies, evaluation with NAVSIM metrics, and simulation interfaces for CARLA and AlpaSim.
@@ -97,7 +97,7 @@ Open `http://localhost:8080` to browse the converted scenes interactively.
   </thead>
   <tbody>
     <tr>
-      <td rowspan="5"><b>Manual</b></td>
+      <td rowspan="6"><b>Manual</b></td>
       <td align="left"><a href="https://www.nuscenes.org/">nuScenes</a></td>
       <td>2020</td><td>5.6</td><td>100.9</td><td>1,000</td>
       <td>6&nbsp;/&nbsp;12</td><td>1&nbsp;/&nbsp;20</td>
@@ -120,6 +120,12 @@ Open `http://localhost:8080` to browse the converted scenes interactively.
       <td>2021</td><td>0.2</td><td>8.3</td><td>103</td>
       <td>6&nbsp;/&nbsp;10</td><td>2&nbsp;/&nbsp;10</td>
       <td>✓&nbsp;/&nbsp;10</td><td>✗</td><td>✗</td>
+    </tr>
+    <tr>
+      <td align="left"><a href="https://once-for-auto-driving.github.io/">ONCE</a></td>
+      <td>2021</td><td>4.6</td><td>109.5</td><td>20</td>
+      <td>7&nbsp;/&nbsp;2</td><td>1&nbsp;/&nbsp;2</td>
+      <td>✓&nbsp;/&nbsp;1</td><td>✗</td><td>✗</td>
     </tr>
     <tr>
       <td align="left"><a href="https://www.cvlibs.net/datasets/kitti-360/">KITTI-360</a></td>
@@ -195,6 +201,7 @@ Open `http://localhost:8080` to browse the converted scenes interactively.
 <details open>
 <summary><b>v0.8.0</b> (unreleased)</summary>
 
+- Added [**ONCE**](https://once-for-auto-driving.github.io/) dataset support: the labelled `once_train`, `once_val` and `once_test` splits with one roof lidar, 7 cameras and 3D boxes, converted with `dataset=once` from `$ONCE_DATA_ROOT` or streamed with `dataset=once-stream` from the official Google Drive archives (`py123d-download dataset=once`). ONCE annotates boxes at 1 Hz on 2 Hz sensor frames; the parser tracks and interpolates them to 2 Hz by default (`dataset.parser.interpolate_labels=false` disables this).
 - Updated **nuReasoning** to the full release on Hugging Face ([`nureasoning/nuReasoning`](https://huggingface.co/datasets/nureasoning/nuReasoning), gated): new `nureasoning_train`, `nureasoning_val` and `nureasoning_test` splits with `dataset=nureasoning` and `dataset=nureasoning-stream`, `.tar` clip archives, and the test split with its challenge questions as a custom modality. Breaking: the downloader selects py123d split names instead of repository folders, its `keep_zip` option is now `keep_archive`, and a clip's repeated key frame is stored once.
 - Added [**KITScenes Multimodal**](https://arxiv.org/abs/2606.02956) dataset support (experimental): ego poses, 9 cameras, 7 lidars, 3 radars and per-scene Lanelet2 HD maps, plus a Hugging Face downloader and streaming conversion. Added the `PCAM_F1`, `LIDAR_FRONT_LEFT` and `LIDAR_FRONT_RIGHT` sensor IDs. Note: the ego vehicle dimensions assume a long-wheelbase BMW 7 Series G12; only the wheelbase is confirmed by the authors' publications.
 - Added [**Shifts**](https://arxiv.org/abs/2107.07455) vehicle motion prediction dataset support: ego, vehicle and pedestrian tracks, per-scene vector maps with synthesized lane boundaries, per-lane traffic light states and scene tags for the canonical `shifts_train`, `shifts_val` and `shifts_test` partitions, with `dataset=shifts` and a `dataset=shifts-stream` variant that streams the scene archives from Yandex Object Storage by HTTP range requests (`num_scenes` truncates a split).

@@ -527,6 +527,34 @@ class GriffinBoxDetectionLabel(BoxDetectionLabel):
 
 
 @register_box_detection_label
+class OnceBoxDetectionLabel(BoxDetectionLabel):
+    """
+    Semantic labels for ONCE bounding box detections, see [1]_
+
+    References
+    ----------
+    .. [1] https://once-for-auto-driving.github.io/documentation.html
+    """
+
+    CAR = 0
+    TRUCK = 1
+    BUS = 2
+    PEDESTRIAN = 3
+    CYCLIST = 4
+
+    def to_default(self) -> DefaultBoxDetectionLabel:
+        """Inherited, see superclass."""
+        mapping = {
+            OnceBoxDetectionLabel.CAR: DefaultBoxDetectionLabel.VEHICLE,
+            OnceBoxDetectionLabel.TRUCK: DefaultBoxDetectionLabel.VEHICLE,
+            OnceBoxDetectionLabel.BUS: DefaultBoxDetectionLabel.VEHICLE,
+            OnceBoxDetectionLabel.PEDESTRIAN: DefaultBoxDetectionLabel.PERSON,
+            OnceBoxDetectionLabel.CYCLIST: DefaultBoxDetectionLabel.TWO_WHEELER,
+        }
+        return mapping[self]
+
+
+@register_box_detection_label
 class ShiftsBoxDetectionLabel(BoxDetectionLabel):
     """
     Semantic labels of bounding box detections in the Shifts vehicle motion prediction dataset, see [1]_.
