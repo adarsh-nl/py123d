@@ -541,6 +541,19 @@ class OnceBoxDetectionLabel(BoxDetectionLabel):
     BUS = 2
     PEDESTRIAN = 3
     CYCLIST = 4
+    
+@register_box_detection_label
+class ShiftsBoxDetectionLabel(BoxDetectionLabel):
+    """
+    Semantic labels of bounding box detections in the Shifts vehicle motion prediction dataset, see [1]_.
+
+    References
+    ----------
+    .. [1] https://github.com/Shifts-Project/shifts/blob/main/sdc/ysdc_dataset_api/proto/dataset.proto
+    """
+
+    VEHICLE = 0
+    PEDESTRIAN = 1
 
     def to_default(self) -> DefaultBoxDetectionLabel:
         """Inherited, see superclass."""
@@ -550,5 +563,7 @@ class OnceBoxDetectionLabel(BoxDetectionLabel):
             OnceBoxDetectionLabel.BUS: DefaultBoxDetectionLabel.VEHICLE,
             OnceBoxDetectionLabel.PEDESTRIAN: DefaultBoxDetectionLabel.PERSON,
             OnceBoxDetectionLabel.CYCLIST: DefaultBoxDetectionLabel.TWO_WHEELER,
+            ShiftsBoxDetectionLabel.VEHICLE: DefaultBoxDetectionLabel.VEHICLE,
+            ShiftsBoxDetectionLabel.PEDESTRIAN: DefaultBoxDetectionLabel.PERSON,
         }
         return mapping[self]

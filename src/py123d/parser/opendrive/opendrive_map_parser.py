@@ -30,6 +30,7 @@ from py123d.parser.opendrive.utils.id_system import build_lane_id, lane_section_
 from py123d.parser.opendrive.utils.lane_helper import OpenDriveLaneGroupHelper, OpenDriveLaneHelper
 from py123d.parser.opendrive.utils.objects_helper import OpenDriveObjectHelper
 from py123d.parser.opendrive.utils.stop_zone_helper import create_stop_zones_from_signals
+from py123d.parser.opendrive.utils.traffic_light_helper import create_traffic_lights_from_signals
 from py123d.parser.opendrive.xodr_parser.lane import XODRRoadMark
 from py123d.parser.opendrive.xodr_parser.opendrive import XODR, Junction
 from py123d.parser.utils.map_utils.road_edge.road_edge_2d_utils import (
@@ -168,7 +169,9 @@ def iter_xodr_map_objects(
     yield from _iter_walkways(lane_helper_dict)
     yield from _iter_intersections(junction_dict, lane_group_helper_dict)
     yield from _iter_crosswalks(object_helper_dict)
-    yield from _iter_stop_zones(signal_dict, lane_helper_dict)
+    stop_zones = create_stop_zones_from_signals(signal_dict, lane_helper_dict)
+    yield from stop_zones.values()
+    yield from create_traffic_lights_from_signals(signal_dict, lane_helper_dict, road_dict, stop_zones)
 
     # Yield polyline elements that are inferred from other road surfaces
     yield from _iter_road_lines(lane_helper_dict, lane_groups, center_lane_marks_dict, internal_only)
@@ -417,12 +420,6 @@ def _iter_crosswalks(object_helper_dict: Dict[int, OpenDriveObjectHelper]) -> It
     """Yields crosswalk objects."""
     for object_helper in object_helper_dict.values():
         yield Crosswalk(object_id=object_helper.object_id, outline=object_helper.outline_polyline_3d)
-
-
-def _iter_stop_zones(signal_dict: Dict, lane_helper_dict: Dict[str, OpenDriveLaneHelper]) -> Iterator:
-    """Yields stop zone objects."""
-    stop_zones = create_stop_zones_from_signals(signal_dict, lane_helper_dict)
-    yield from stop_zones.values()
 
 
 def _iter_road_lines(

@@ -22,6 +22,7 @@ Each dataset entry includes installation instructions, available data types, kno
    once
    pandaset
    physical-ai-av
+   shifts
    truckdrive
    wod_motion
    wod_perception

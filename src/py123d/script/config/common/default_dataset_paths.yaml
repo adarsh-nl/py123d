@@ -57,3 +57,6 @@ dataset_paths:
 
   # KITScenes defaults
   kitscenes_data_root: ${oc.env:KITSCENES_DATA_ROOT,null}
+
+  # Shifts defaults
+  shifts_data_root: ${oc.env:SHIFTS_DATA_ROOT,null}
