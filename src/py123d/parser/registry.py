@@ -541,7 +541,19 @@ class OnceBoxDetectionLabel(BoxDetectionLabel):
     BUS = 2
     PEDESTRIAN = 3
     CYCLIST = 4
-    
+
+    def to_default(self) -> DefaultBoxDetectionLabel:
+        """Inherited, see superclass."""
+        mapping = {
+            OnceBoxDetectionLabel.CAR: DefaultBoxDetectionLabel.VEHICLE,
+            OnceBoxDetectionLabel.TRUCK: DefaultBoxDetectionLabel.VEHICLE,
+            OnceBoxDetectionLabel.BUS: DefaultBoxDetectionLabel.VEHICLE,
+            OnceBoxDetectionLabel.PEDESTRIAN: DefaultBoxDetectionLabel.PERSON,
+            OnceBoxDetectionLabel.CYCLIST: DefaultBoxDetectionLabel.TWO_WHEELER,
+        }
+        return mapping[self]
+
+
 @register_box_detection_label
 class ShiftsBoxDetectionLabel(BoxDetectionLabel):
     """
@@ -558,11 +570,6 @@ class ShiftsBoxDetectionLabel(BoxDetectionLabel):
     def to_default(self) -> DefaultBoxDetectionLabel:
         """Inherited, see superclass."""
         mapping = {
-            OnceBoxDetectionLabel.CAR: DefaultBoxDetectionLabel.VEHICLE,
-            OnceBoxDetectionLabel.TRUCK: DefaultBoxDetectionLabel.VEHICLE,
-            OnceBoxDetectionLabel.BUS: DefaultBoxDetectionLabel.VEHICLE,
-            OnceBoxDetectionLabel.PEDESTRIAN: DefaultBoxDetectionLabel.PERSON,
-            OnceBoxDetectionLabel.CYCLIST: DefaultBoxDetectionLabel.TWO_WHEELER,
             ShiftsBoxDetectionLabel.VEHICLE: DefaultBoxDetectionLabel.VEHICLE,
             ShiftsBoxDetectionLabel.PEDESTRIAN: DefaultBoxDetectionLabel.PERSON,
         }
